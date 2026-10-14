@@ -1,0 +1,130 @@
+{
+  "_note": "Stocks added after launch (first batch, 2026-10-10: AAPL, META, GOOGL, AMZN, MSFT, AMD, CRCL, MU), in the shape of stocks.json. token = Robinhood stock token (18 decimals; symbol(), decimals() and the feed's description() checked on chain 2026-10-10). feed = Chainlink proxy, 8 decimals. lltv is the short market's limit (62.5%, the tier every non-index stock uses). lltvUsdg is the limit for borrowing USDG against the stock vault's shares: 62.5% for AAPL, MSFT, GOOGL, AMZN, META (mega caps), 38.5% for AMD, CRCL, MU. cap is the most the vault lends, in whole tokens (about $1M each at 2026-10-10 prices, like the launch desks). capUsdg is the most the Borro USDG vault lends into that market, in whole USDG (250,000 mega caps, 100,000 the rest; Roy to confirm). seed is the dead deposit in wei of the token (0.001, and 0.01 CRCL since it is the cheapest, as GME was). route = hookless Uniswap v4 pools from USDG to the stock: META (pool id 0x5875...ae36, $3.6M), AAPL (0xc748...8fdb, $673k) and AMD (0xde9f...1274, $577k) resolved 2026-10-10 by hashing candidate keys against Dexscreener's pool ids and reading the pools' slot0 and liquidity from the PoolManager; their v3 pools are far shallower ($190k, $114k, $70k). v3Pool = the deepest USDG pool for the rest, from the chain's v3 factory 0x1f7d7550B1b028f7571E69A784071F0205FD2EfA (getPool checked): CRCL 0.3% ($6.9M), MU 0.3% ($1.2M), GOOGL 0.05% ($961k), AMZN 0.3% ($530k), MSFT 0.3% ($440k). Depths from Dexscreener 2026-10-10.",
+  "stocks": [
+    {
+      "symbol": "AAPL",
+      "name": "Apple",
+      "token": "0xaF3D76f1834A1d425780943C99Ea8A608f8a93f9",
+      "feed": "0x6B22A786bAa607d76728168703a39Ea9C99f2cD0",
+      "lltv": "625000000000000000",
+      "cap": 3000,
+      "seed": "1000000000000000",
+      "lltvUsdg": "625000000000000000",
+      "capUsdg": 250000,
+      "route": [
+        {
+          "currency0": "0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168",
+          "currency1": "0xaF3D76f1834A1d425780943C99Ea8A608f8a93f9",
+          "fee": 3000,
+          "tickSpacing": 60
+        }
+      ],
+      "v3Pool": "0x0000000000000000000000000000000000000000"
+    },
+    {
+      "symbol": "META",
+      "name": "Meta",
+      "token": "0xc0D6457C16Cc70d6790Dd43521C899C87ce02f35",
+      "feed": "0x7C38C00C30BEe9378381E7B6135d7283356D71b1",
+      "lltv": "625000000000000000",
+      "cap": 1500,
+      "seed": "1000000000000000",
+      "lltvUsdg": "625000000000000000",
+      "capUsdg": 250000,
+      "route": [
+        {
+          "currency0": "0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168",
+          "currency1": "0xc0D6457C16Cc70d6790Dd43521C899C87ce02f35",
+          "fee": 3000,
+          "tickSpacing": 60
+        }
+      ],
+      "v3Pool": "0x0000000000000000000000000000000000000000"
+    },
+    {
+      "symbol": "GOOGL",
+      "name": "Alphabet",
+      "token": "0x2e0847E8910a9732eB3fb1bb4b70a580ADAD4FE3",
+      "feed": "0xF6f373a037c30F0e5010d854385cA89185AE638b",
+      "lltv": "625000000000000000",
+      "cap": 3000,
+      "seed": "1000000000000000",
+      "lltvUsdg": "625000000000000000",
+      "capUsdg": 250000,
+      "route": [],
+      "v3Pool": "0x34D0dC122CF9A8Eb296fC5e0D3A233625D7d19b7"
+    },
+    {
+      "symbol": "AMZN",
+      "name": "Amazon",
+      "token": "0x12f190a9F9d7D37a250758b26824B97CE941bF54",
+      "feed": "0xD5a1508ceD74c084eBf3cBe853e2C968fB2a651C",
+      "lltv": "625000000000000000",
+      "cap": 4000,
+      "seed": "1000000000000000",
+      "lltvUsdg": "625000000000000000",
+      "capUsdg": 250000,
+      "route": [],
+      "v3Pool": "0x8AC92DA74AB5F3b1d024Dc1943Ad7e15Dc4179Ef"
+    },
+    {
+      "symbol": "MSFT",
+      "name": "Microsoft",
+      "token": "0xe93237C50D904957Cf27E7B1133b510C669c2e74",
+      "feed": "0x45C3C877C15E6BA2EBB19eA114Ea508d14C1Af2E",
+      "lltv": "625000000000000000",
+      "cap": 2000,
+      "seed": "1000000000000000",
+      "lltvUsdg": "625000000000000000",
+      "capUsdg": 250000,
+      "route": [],
+      "v3Pool": "0xeb60bCD1D920ad6E102690CCFC6fB488899E1510"
+    },
+    {
+      "symbol": "AMD",
+      "name": "AMD",
+      "token": "0x86923f96303D656E4aa86D9d42D1e57ad2023fdC",
+      "feed": "0x943A29E7ae51A4798823ca9eEd2ed533B2A22C72",
+      "lltv": "625000000000000000",
+      "cap": 1500,
+      "seed": "1000000000000000",
+      "lltvUsdg": "385000000000000000",
+      "capUsdg": 100000,
+      "route": [
+        {
+          "currency0": "0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168",
+          "currency1": "0x86923f96303D656E4aa86D9d42D1e57ad2023fdC",
+          "fee": 10000,
+          "tickSpacing": 200
+        }
+      ],
+      "v3Pool": "0x0000000000000000000000000000000000000000"
+    },
+    {
+      "symbol": "CRCL",
+      "name": "Circle",
+      "token": "0xdF0992E440dD0be65BD8439b609d6D4366bf1CB5",
+      "feed": "0x6652eDf64bA3731C4F2D3ce821A0Fb1f1f6b482a",
+      "lltv": "625000000000000000",
+      "cap": 10000,
+      "seed": "10000000000000000",
+      "lltvUsdg": "385000000000000000",
+      "capUsdg": 100000,
+      "route": [],
+      "v3Pool": "0x654E4143e82a5824445Ade0824351C2A9ACD95a8"
+    },
+    {
+      "symbol": "MU",
+      "name": "Micron",
+      "token": "0xfF080c8ce2E5feadaCa0Da81314Ae59D232d4afD",
+      "feed": "0x425EEFdCf05ed6526C3cE61Af99429A228a6d596",
+      "lltv": "625000000000000000",
+      "cap": 1000,
+      "seed": "1000000000000000",
+      "lltvUsdg": "385000000000000000",
+      "capUsdg": 100000,
+      "route": [],
+      "v3Pool": "0xd057B1Bc54917855BBee58eAd58647f47caB35E5"
+    }
+  ]
+}

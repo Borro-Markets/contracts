@@ -1,0 +1,177 @@
+{
+  "_note": "Stocks offered at launch. token = Robinhood stock token (18 decimals). feed = Chainlink proxy from https://reference-data-directory.vercel.app/feeds-robinhood-mainnet.json read 2026-09-29 (24/5 market hours, 0.5% deviation, 24h heartbeat, 8 decimals). lltv is a Morpho enabled tier. cap is the most the vault may lend, in whole tokens. seed is the dead deposit, in wei of the token. route = hookless Uniswap v4 pools from USDG to the stock, copied from Trickle's list (deepest pool per stock on 2026-09-29). PLTR and SPCX routes resolved 2026-09-29 by hashing pool keys against Dexscreener's v4 pool ids ($712k and $1.1M deep). v3Pool = a Uniswap v3 pool of USDG and the stock, used instead of the v4 route when set: GME (0.05% pool, $191k on 2026-09-29; the 1% pool 0xE9713f453aDB9245B19559790c96F470a18F2fDF holds $533k) and SPCX (0.05% pool, $2.2M, deeper and cheaper than its 1% v4 pool). Uniswap v3 factory on the chain: 0x1f7d7550B1b028f7571E69A784071F0205FD2EfA (read from the pools' factory()). lltvUsdg is the Morpho enabled tier for borrowing USDG against the stock vault's shares (62.5% for SPY, QQQ, NVDA; 38.5% for the rest). capUsdg is the most the Borro USDG vault lends into that market, in whole USDG (placeholders set 2026-10-01, Roy to confirm). SPY is the USDG vault's liquidity market (every deposit lands there first), so its capUsdg is the sum of every other stock's (1,050,000, set 2026-10-01 after the review); BorroLib raises it to that sum if it is ever lower.",
+  "stocks": [
+    {
+      "symbol": "SPY",
+      "name": "S&P 500",
+      "token": "0x117cc2133c37B721F49dE2A7a74833232B3B4C0C",
+      "feed": "0x319724394D3A0e3669269846abE664Cd621f9f6A",
+      "lltv": "770000000000000000",
+      "cap": 2000,
+      "seed": "1000000000000000",
+      "lltvUsdg": "625000000000000000",
+      "capUsdg": 1050000,
+      "route": [
+        {
+          "currency0": "0x117cc2133c37B721F49dE2A7a74833232B3B4C0C",
+          "currency1": "0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168",
+          "fee": 3000,
+          "tickSpacing": 60
+        }
+      ],
+      "v3Pool": "0x0000000000000000000000000000000000000000"
+    },
+    {
+      "symbol": "QQQ",
+      "name": "Nasdaq 100",
+      "token": "0xD5f3879160bc7c32ebb4dC785F8a4F505888de68",
+      "feed": "0x80901d846d5D7B030F26B480776EE3b29374C2ae",
+      "lltv": "770000000000000000",
+      "cap": 2000,
+      "seed": "1000000000000000",
+      "lltvUsdg": "625000000000000000",
+      "capUsdg": 250000,
+      "route": [
+        {
+          "currency0": "0x117cc2133c37B721F49dE2A7a74833232B3B4C0C",
+          "currency1": "0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168",
+          "fee": 500,
+          "tickSpacing": 5
+        },
+        {
+          "currency0": "0x117cc2133c37B721F49dE2A7a74833232B3B4C0C",
+          "currency1": "0xD5f3879160bc7c32ebb4dC785F8a4F505888de68",
+          "fee": 200,
+          "tickSpacing": 2
+        }
+      ],
+      "v3Pool": "0x0000000000000000000000000000000000000000"
+    },
+    {
+      "symbol": "NVDA",
+      "name": "NVIDIA",
+      "token": "0xd0601CE157Db5bdC3162BbaC2a2C8aF5320D9EEC",
+      "feed": "0x379EC4f7C378F34a1B47E4F3cbeBCbAC3E8E9F15",
+      "lltv": "625000000000000000",
+      "cap": 5000,
+      "seed": "1000000000000000",
+      "lltvUsdg": "625000000000000000",
+      "capUsdg": 250000,
+      "route": [
+        {
+          "currency0": "0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168",
+          "currency1": "0xd0601CE157Db5bdC3162BbaC2a2C8aF5320D9EEC",
+          "fee": 3000,
+          "tickSpacing": 60
+        }
+      ],
+      "v3Pool": "0x0000000000000000000000000000000000000000"
+    },
+    {
+      "symbol": "TSLA",
+      "name": "Tesla",
+      "token": "0x322F0929c4625eD5bAd873c95208D54E1c003b2d",
+      "feed": "0x4A1166a659A55625345e9515b32adECea5547C38",
+      "lltv": "625000000000000000",
+      "cap": 3000,
+      "seed": "1000000000000000",
+      "lltvUsdg": "385000000000000000",
+      "capUsdg": 100000,
+      "route": [
+        {
+          "currency0": "0x322F0929c4625eD5bAd873c95208D54E1c003b2d",
+          "currency1": "0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168",
+          "fee": 3000,
+          "tickSpacing": 60
+        }
+      ],
+      "v3Pool": "0x0000000000000000000000000000000000000000"
+    },
+    {
+      "symbol": "MSTR",
+      "name": "Strategy",
+      "token": "0xec262a75e413fAfD0dF80480274532C79D42da09",
+      "feed": "0x396118bdFB181e6240E74D243F266B061c0edc3D",
+      "lltv": "625000000000000000",
+      "cap": 3000,
+      "seed": "1000000000000000",
+      "lltvUsdg": "385000000000000000",
+      "capUsdg": 100000,
+      "route": [
+        {
+          "currency0": "0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168",
+          "currency1": "0xec262a75e413fAfD0dF80480274532C79D42da09",
+          "fee": 2500,
+          "tickSpacing": 25
+        }
+      ],
+      "v3Pool": "0x0000000000000000000000000000000000000000"
+    },
+    {
+      "symbol": "COIN",
+      "name": "Coinbase",
+      "token": "0x6330D8C3178a418788dF01a47479c0ce7CCF450b",
+      "feed": "0xA3a468A452940B7D6b69991207B508c609a98Ef2",
+      "lltv": "625000000000000000",
+      "cap": 3000,
+      "seed": "1000000000000000",
+      "lltvUsdg": "385000000000000000",
+      "capUsdg": 100000,
+      "route": [
+        {
+          "currency0": "0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168",
+          "currency1": "0x6330D8C3178a418788dF01a47479c0ce7CCF450b",
+          "fee": 10000,
+          "tickSpacing": 200
+        }
+      ],
+      "v3Pool": "0x0000000000000000000000000000000000000000"
+    },
+    {
+      "symbol": "PLTR",
+      "name": "Palantir",
+      "token": "0x894E1EC2D74FFE5AEF8Dc8A9e84686acCB964F2A",
+      "feed": "0x820ABedFF239034956B7A9d2F0a331f9F075eB4c",
+      "lltv": "625000000000000000",
+      "cap": 4000,
+      "seed": "1000000000000000",
+      "lltvUsdg": "385000000000000000",
+      "capUsdg": 100000,
+      "route": [
+        {
+          "currency0": "0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168",
+          "currency1": "0x894E1EC2D74FFE5AEF8Dc8A9e84686acCB964F2A",
+          "fee": 10000,
+          "tickSpacing": 200
+        }
+      ],
+      "v3Pool": "0x0000000000000000000000000000000000000000"
+    },
+    {
+      "symbol": "SPCX",
+      "name": "SpaceX",
+      "token": "0x4a0E65A3EcceC6dBe60AE065F2e7bb85Fae35eEa",
+      "feed": "0xB265810950ba6c5C0Ff821c9963014a56fD8Bffb",
+      "lltv": "625000000000000000",
+      "cap": 5000,
+      "seed": "1000000000000000",
+      "lltvUsdg": "385000000000000000",
+      "capUsdg": 100000,
+      "route": [],
+      "v3Pool": "0xc61284332117c3FB23A2A56cceFFD07F7aF60029"
+    },
+    {
+      "symbol": "GME",
+      "name": "GameStop",
+      "token": "0x1b0E319c6A659F002271B69dB8A7df2F911c153E",
+      "feed": "0x27C71df6A64fB476468EdF256CF72c038baB5B67",
+      "lltv": "625000000000000000",
+      "cap": 30000,
+      "seed": "10000000000000000",
+      "lltvUsdg": "385000000000000000",
+      "capUsdg": 50000,
+      "route": [],
+      "v3Pool": "0xE2b46c905E12Ab8E2f864e4821a4325884C1B126"
+    }
+  ]
+}
