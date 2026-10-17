@@ -377,7 +377,7 @@ contract OptionsDeskReviewTest is Test {
         uint256 got = desk.claim(eid, 1e18, false);
         got += desk.release(eid);
         vm.stopPrank();
-        assertLe(got, evilLock, "the owner gets back at most what it locked");
+        assertLe(got, evilLock, "The owner gets back at most what it locked");
         assertGe(vault.balanceOf(address(desk)), realLock, "Ann's lock is untouched");
     }
 }

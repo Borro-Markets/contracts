@@ -7,7 +7,7 @@ import {Ownable2Step, Ownable} from "@openzeppelin/contracts/access/Ownable2Step
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
 /// @title TeamReserve
-/// @notice Holds the $BORRO kept for future team hires, in public. Roy, 2026-10-07: "Reserve + 30-day timelock".
+/// @notice Holds the $BORRO kept for future team hires, in public. 2026-10-07: "Reserve + 30-day timelock".
 ///         Tokens leave it only two ways:
 ///           1. A hire's grant: the owner grants an amount with a start date; it vests over four years with a one year
 ///              cliff (nothing before start + 365 days, a quarter at the cliff, then 1/48 of the grant at each further

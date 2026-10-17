@@ -9,14 +9,14 @@ import {TeamReserve} from "../src/TeamReserve.sol";
 
 /// TeamReserve on a copy of the live chain, with the real $BORRO and the real Hoard Safe as owner. Funded by
 /// impersonating a live $BORRO holder (the Uniswap v4 PoolManager, which holds the coin's pool side), with the
-/// 34.1M Roy plans to move in.
+/// 34.1M the owner plans to move in.
 ///   BORRO_FORK_RPC=<rpc> forge test --match-contract TeamReserveForkTest
 /// Times are read with vm.getBlockTimestamp() (under via_ir block.timestamp may be read once for the whole test).
 contract TeamReserveForkTest is Test {
     IERC20 constant BORRO = IERC20(0x89B76DCDDa801f2e456765742C64950eB2A0c93C);
     address constant SAFE = 0x8A22d6e75e9427b9D57e42a7984200029e7E173C; // the Hoard Safe
     address constant HOLDER = 0x8366a39CC670B4001A1121B8F6A443A643e40951; // Uniswap v4 PoolManager: holds $BORRO
-    address constant ROY = 0x912CFC9C5D8dC393F5c9949A0912b790529f549E; // Roy's launch wallet: where the withdrawal goes
+    address constant LAUNCH_WALLET = 0x912CFC9C5D8dC393F5c9949A0912b790529f549E; // the launch wallet: where the withdrawal goes
     uint256 constant PLAN = 34_100_000e18;
     uint256 constant MONTH = 2_628_000;
 
@@ -91,10 +91,10 @@ contract TeamReserveForkTest is Test {
         assertEq(reserve.totalGranted(), 0);
 
         // Any other withdrawal: queued in public, executable by anyone only 30 days later, sent to its `to`.
-        uint256 royBefore = BORRO.balanceOf(ROY);
+        uint256 ownerBefore = BORRO.balanceOf(LAUNCH_WALLET);
         uint256 q = vm.getBlockTimestamp();
         vm.prank(SAFE);
-        uint256 w = reserve.queueWithdraw(ROY, 1_000_000e18);
+        uint256 w = reserve.queueWithdraw(LAUNCH_WALLET, 1_000_000e18);
         (uint256[] memory ids,,, uint256[] memory readyAt) = reserve.pendingWithdrawals();
         assertEq(ids.length, 1);
         assertEq(ids[0], w);
@@ -106,7 +106,7 @@ contract TeamReserveForkTest is Test {
         vm.warp(q + 30 days);
         vm.prank(stranger);
         reserve.executeWithdraw(w);
-        assertEq(BORRO.balanceOf(ROY), royBefore + 1_000_000e18);
+        assertEq(BORRO.balanceOf(LAUNCH_WALLET), ownerBefore + 1_000_000e18);
         assertEq(BORRO.balanceOf(stranger), 0);
         assertEq(reserve.totalQueued(), 0);
 

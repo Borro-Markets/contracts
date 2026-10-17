@@ -22,7 +22,7 @@ import {BorroLib} from "./BorroLib.sol";
 /// one market adapter, caps, a 10% fee to the owner, 3-day waits) handed to the Hoard Safe, and EthLoanRouter with the
 /// nine markets listed, its ownership offered to the Safe (it must accept).
 ///
-/// Every number Roy has not decided yet is a setting, with the recommended value as the default:
+/// Every number the owner has not decided yet is a setting, with the recommended value as the default:
 ///   LLTV               every market's LLTV, WAD (default 385000000000000000 = 38.5%); LLTV_<SYMBOL> overrides one
 ///   CAP_TOTAL          the most bETH lends in all, WETH wei (default 10 ETH)
 ///   CAP_BIG / BIG      per market for the stocks in BIG (default 2 ETH for SPY,QQQ,NVDA)
@@ -31,15 +31,15 @@ import {BorroLib} from "./BorroLib.sol";
 ///   WEEKEND_LIQ        1 (default): oracles name the liquidator, so loans can be closed out at weekends with the stock
 ///                      counted 5% above its last close; 0: oracles name nobody, no liquidation at all while closed
 ///   DEAD_DEPOSITS      0 (default): none. 1: 0.0001 WETH into bETH and 0.00001 WETH into each market for 0xdEaD,
-///                      wrapped from the deployer's ETH; permanent, so only with Roy's explicit yes. bETH must not be
+///                      wrapped from the deployer's ETH; permanent, so only with the owner's explicit yes. bETH must not be
 ///                      opened to lenders before they are in (the site stays hidden until config names the vault).
 ///   OWNER              default the Hoard Safe; KEEPER default the live keeper (an allocator on bETH, as on bUSDG)
 ///   TIMELOCK           seconds, default 259200 (3 days)
-/// The Safe's own seed (if Roy says yes) is not in this script: it is the Safe's money, deposited by the Safe itself
+/// The Safe's own seed (if the owner says yes) is not in this script: it is the Safe's money, deposited by the Safe itself
 /// (WETH approve, then bETH deposit), and it can be redeemed like any lender's.
 ///
 ///   forge script script/BorrowEth.s.sol --rpc-url $RPC --sender <deployer>                (dry run, sends nothing)
-///   ... --broadcast --slow --private-key $(cat ~/.config/borro/deployer_key)               (for real: Roy, via the .sh)
+///   ... --broadcast --slow --private-key $(cat ~/.config/borro/deployer_key)               (for real: the owner, via the .sh)
 contract BorrowEthScript is Script {
     using stdJson for string;
     using MarketParamsLib for MarketParams;

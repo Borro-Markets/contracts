@@ -550,7 +550,7 @@ contract EthLoanForkTest is Test {
         oracle.arm();
     }
 
-    /// The other choice for Roy: oracles that name no liquidator. Nothing is ever armed: the liquidator still works
+    /// The other choice for the owner: oracles that name no liquidator. Nothing is ever armed: the liquidator still works
     /// on weekdays at the strict price, and nothing can liquidate at a weekend.
     function test_noWeekendLiquidations() public onFork {
         StockEthOracle plain = new StockEthOracle(NVDA, IShareVault(BNVDA), IChainlinkFeed(NVDA_FEED), ETH_FEED, ETH_PRICE, address(0));

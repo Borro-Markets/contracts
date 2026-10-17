@@ -1,0 +1,51 @@
+{
+  "_note": "The stocks NetNet sits on that Borro does not list yet (2026-10-16: \"we need to add all of the stocks that net net sits on to our markets\"): AAPL, GOOGL and MSFT, copied from stocks-add.json (checked and rehearsed 2026-10-10), with the Borro USDG vault's cap raised to 500,000 for AAPL and GOOGL to fit NetNet's loans ($199K and $262K on 2026-10-16). NVDA, SPCX and COIN are listed already. Same shape as stocks.json.",
+  "stocks": [
+    {
+      "symbol": "AAPL",
+      "name": "Apple",
+      "token": "0xaF3D76f1834A1d425780943C99Ea8A608f8a93f9",
+      "feed": "0x6B22A786bAa607d76728168703a39Ea9C99f2cD0",
+      "lltv": "625000000000000000",
+      "cap": 3000,
+      "seed": "1000000000000000",
+      "lltvUsdg": "625000000000000000",
+      "capUsdg": 500000,
+      "route": [
+        {
+          "currency0": "0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168",
+          "currency1": "0xaF3D76f1834A1d425780943C99Ea8A608f8a93f9",
+          "fee": 3000,
+          "tickSpacing": 60
+        }
+      ],
+      "v3Pool": "0x0000000000000000000000000000000000000000"
+    },
+    {
+      "symbol": "GOOGL",
+      "name": "Alphabet",
+      "token": "0x2e0847E8910a9732eB3fb1bb4b70a580ADAD4FE3",
+      "feed": "0xF6f373a037c30F0e5010d854385cA89185AE638b",
+      "lltv": "625000000000000000",
+      "cap": 3000,
+      "seed": "1000000000000000",
+      "lltvUsdg": "625000000000000000",
+      "capUsdg": 500000,
+      "route": [],
+      "v3Pool": "0x34D0dC122CF9A8Eb296fC5e0D3A233625D7d19b7"
+    },
+    {
+      "symbol": "MSFT",
+      "name": "Microsoft",
+      "token": "0xe93237C50D904957Cf27E7B1133b510C669c2e74",
+      "feed": "0x45C3C877C15E6BA2EBB19eA114Ea508d14C1Af2E",
+      "lltv": "625000000000000000",
+      "cap": 2000,
+      "seed": "1000000000000000",
+      "lltvUsdg": "625000000000000000",
+      "capUsdg": 250000,
+      "route": [],
+      "v3Pool": "0xeb60bCD1D920ad6E102690CCFC6fB488899E1510"
+    }
+  ]
+}

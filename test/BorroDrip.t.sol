@@ -64,7 +64,7 @@ contract BorroDripBase is Test {
     uint256 constant PERIOD = 26 weeks; // 182 days
     uint256 constant DURATION = 104 weeks; // 728 days
     uint256 constant T0 = 1_800_000_000; // 2027-01-15 08:00 UTC, deploy time: not a midnight
-    uint256 constant FUND = 50_000_000e18; // what Roy sends before start()
+    uint256 constant FUND = 50_000_000e18; // what the owner sends before start()
     uint256 constant EXPECTED = 50_000_000e18; // what the deploy script sizes the distributor's growth limit for
     uint256 constant SUPPLY = 1_000_000_000e18;
 
@@ -74,9 +74,9 @@ contract BorroDripBase is Test {
     address safe = makeAddr("safe"); // the Hoard Safe: owns the distributor
     address keeper = makeAddr("keeper"); // the distributor's updater
     address guardian = makeAddr("guardian");
-    address roy = makeAddr("roy"); // owns the drip: the only one who can start or stop it
-    address royCold = makeAddr("royCold"); // where Roy's stop sends
-    address holder = makeAddr("holder"); // the wallet that holds Roy's $BORRO
+    address ownerWallet = makeAddr("ownerWallet"); // owns the drip: the only one who can start or stop it
+    address ownerCold = makeAddr("ownerCold"); // where the owner's stop sends
+    address holder = makeAddr("holder"); // the wallet that holds the owner's $BORRO
     address alice = makeAddr("alice");
     address bob = makeAddr("bob");
     address eve = makeAddr("eve");
@@ -86,7 +86,7 @@ contract BorroDripBase is Test {
         coin = new WatchedCoin();
         coin.mint(holder, SUPPLY);
         dist = new BorroDistributor(IERC20(address(coin)), safe, keeper, guardian, limitFor(EXPECTED));
-        drip = new BorroDrip(IERC20(address(coin)), address(dist), roy);
+        drip = new BorroDrip(IERC20(address(coin)), address(dist), ownerWallet);
         coin.watch(address(drip));
     }
 
@@ -102,7 +102,7 @@ contract BorroDripBase is Test {
 
     function startAt(uint256 t) internal returns (uint256 total) {
         vm.warp(t);
-        vm.prank(roy);
+        vm.prank(ownerWallet);
         total = drip.start();
     }
 
@@ -121,10 +121,10 @@ contract BorroDripBase is Test {
     function make(uint256 total, uint256 at) internal returns (BorroDrip d) {
         WatchedCoin c = new WatchedCoin();
         BorroDistributor bd = new BorroDistributor(IERC20(address(c)), safe, keeper, guardian, 0);
-        d = new BorroDrip(IERC20(address(c)), address(bd), roy);
+        d = new BorroDrip(IERC20(address(c)), address(bd), ownerWallet);
         c.mint(address(d), total);
         vm.warp(at);
-        vm.prank(roy);
+        vm.prank(ownerWallet);
         d.start();
     }
 }
@@ -135,7 +135,7 @@ contract BorroDripTest is BorroDripBase {
     function test_constructor_links_and_nothing_else() public view {
         assertEq(address(drip.token()), address(coin));
         assertEq(drip.distributor(), address(dist));
-        assertEq(drip.owner(), roy);
+        assertEq(drip.owner(), ownerWallet);
         assertEq(drip.pendingOwner(), address(0));
         assertEq(drip.PERIOD(), 182 days);
         assertEq(drip.PERIODS(), 4);
@@ -157,26 +157,26 @@ contract BorroDripTest is BorroDripBase {
     function test_constructor_refusals() public {
         IERC20 t = IERC20(address(coin));
         vm.expectRevert(BorroDrip.ZeroAddress.selector);
-        this.newDrip(IERC20(address(0)), address(dist), roy);
+        this.newDrip(IERC20(address(0)), address(dist), ownerWallet);
         vm.expectRevert(BorroDrip.ZeroAddress.selector);
-        this.newDrip(t, address(0), roy);
+        this.newDrip(t, address(0), ownerWallet);
         vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableInvalidOwner.selector, address(0)));
         this.newDrip(t, address(dist), address(0));
         // A distributor that pays another token.
         WatchedCoin other = new WatchedCoin();
         BorroDistributor otherDist = new BorroDistributor(IERC20(address(other)), safe, keeper, guardian, 1);
         vm.expectRevert(BorroDrip.WrongToken.selector);
-        this.newDrip(t, address(otherDist), roy);
+        this.newDrip(t, address(otherDist), ownerWallet);
         // Not a distributor at all: a wallet has no token() to answer.
         vm.expectRevert();
-        this.newDrip(t, eve, roy);
+        this.newDrip(t, eve, ownerWallet);
         // Pays the token but cannot answer paused(): drip() would ask it every time, so it is refused at deploy.
         address noPause = address(new TokenOnly(t));
         vm.expectRevert();
-        this.newDrip(t, noPause, roy);
+        this.newDrip(t, noPause, ownerWallet);
         // The right ones deploy, and the checks above all ran.
-        BorroDrip ok = this.newDrip(t, address(dist), roy);
-        assertEq(ok.owner(), roy);
+        BorroDrip ok = this.newDrip(t, address(dist), ownerWallet);
+        assertEq(ok.owner(), ownerWallet);
         assertEq(ok.distributor(), address(dist));
     }
 
@@ -189,7 +189,7 @@ contract BorroDripTest is BorroDripBase {
         vm.warp(t);
         vm.expectEmit(address(drip));
         emit BorroDrip.Started(FUND, t);
-        vm.prank(roy);
+        vm.prank(ownerWallet);
         assertEq(drip.start(), FUND);
         assertEq(drip.total(), FUND);
         assertEq(drip.startedAt(), t);
@@ -201,7 +201,7 @@ contract BorroDripTest is BorroDripBase {
         assertEq(drip.periodAmount(3), 3_333_333_333333333333333335); // the rounding remainder: 2 wei
         assertEq(drip.periodAmount(4), 0);
         assertEq(drip.periodAmount(type(uint256).max), 0);
-        // Per day, as Roy was told: 146,520 / 73,260 / 36,630 / 18,315.
+        // Per day, as the owner was told: 146,520 / 73,260 / 36,630 / 18,315.
         assertEq(dayAfterStart(drip, 0) / 1e18, 146_520);
         assertEq(dayAfterStart(drip, 182) / 1e18, 73_260);
         assertEq(dayAfterStart(drip, 364) / 1e18, 36_630);
@@ -210,16 +210,16 @@ contract BorroDripTest is BorroDripBase {
 
     function test_start_only_once_never_after_stop_never_empty() public {
         // Nothing held: refused.
-        vm.prank(roy);
+        vm.prank(ownerWallet);
         vm.expectRevert(BorroDrip.NothingHeld.selector);
         drip.start();
         fund(FUND);
-        vm.prank(roy);
+        vm.prank(ownerWallet);
         drip.start();
         // Only once, even with more arriving.
         fund(1e18);
         vm.warp(vm.getBlockTimestamp() + 1 days);
-        vm.prank(roy);
+        vm.prank(ownerWallet);
         vm.expectRevert(BorroDrip.AlreadyStarted.selector);
         drip.start();
         assertEq(drip.total(), FUND);
@@ -230,13 +230,13 @@ contract BorroDripTest is BorroDripBase {
         fund(FUND);
         vm.warp(T0 + 5 hours);
         vm.expectEmit(address(drip));
-        emit BorroDrip.Stopped(royCold, FUND, T0 + 5 hours);
-        vm.prank(roy);
-        assertEq(drip.stop(royCold), FUND);
-        assertEq(coin.balanceOf(royCold), FUND);
+        emit BorroDrip.Stopped(ownerCold, FUND, T0 + 5 hours);
+        vm.prank(ownerWallet);
+        assertEq(drip.stop(ownerCold), FUND);
+        assertEq(coin.balanceOf(ownerCold), FUND);
         assertEq(drip.stoppedAt(), T0 + 5 hours);
         fund(10e18);
-        vm.prank(roy);
+        vm.prank(ownerWallet);
         vm.expectRevert(BorroDrip.IsStopped.selector);
         drip.start();
         assertEq(drip.startedAt(), 0);
@@ -245,15 +245,15 @@ contract BorroDripTest is BorroDripBase {
         vm.expectRevert(BorroDrip.IsStopped.selector);
         drip.drip();
         // The later arrival comes back with a second stop.
-        vm.prank(roy);
-        assertEq(drip.stop(royCold), 10e18);
+        vm.prank(ownerWallet);
+        assertEq(drip.stop(ownerCold), 10e18);
         assertEq(drip.stoppedAt(), T0 + 5 hours);
         assertEq(coin.paidToCount(), 1);
-        assertEq(coin.paidTo(0), royCold);
+        assertEq(coin.paidTo(0), ownerCold);
     }
 
     function testFuzz_only_the_owner_can_start(address who) public {
-        vm.assume(who != roy);
+        vm.assume(who != ownerWallet);
         fund(FUND);
         vm.prank(who);
         vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, who));
@@ -266,7 +266,7 @@ contract BorroDripTest is BorroDripBase {
 
     function test_nothing_before_start() public {
         fund(FUND);
-        // Time passes, the drip holds 50M, nothing goes out until Roy starts it.
+        // Time passes, the drip holds 50M, nothing goes out until the owner starts it.
         for (uint256 i; i < 5; ++i) {
             vm.warp(T0 + i * 100 days);
             assertEq(drip.scheduled(vm.getBlockTimestamp()), 0);
@@ -466,9 +466,9 @@ contract BorroDripTest is BorroDripBase {
         assertEq(drip.releasable(), 0);
         assertEq(drip.drip(), 0);
         // Only stop() sends the extra.
-        vm.prank(roy);
-        assertEq(drip.stop(royCold), 1_000_000e18);
-        assertEq(coin.balanceOf(royCold), 1_000_000e18);
+        vm.prank(ownerWallet);
+        assertEq(drip.stop(ownerCold), 1_000_000e18);
+        assertEq(coin.balanceOf(ownerCold), 1_000_000e18);
     }
 
     // ------------------------------------------------------------------ a paused distributor
@@ -523,9 +523,9 @@ contract BorroDripTest is BorroDripBase {
         vm.prank(guardian);
         dist.setPaused(true);
         vm.warp(s + 40 days); // 35 days accrue while paused
-        vm.prank(roy);
-        assertEq(drip.stop(royCold), FUND - sent, "the accrued days come back too");
-        assertEq(coin.balanceOf(royCold), FUND - sent);
+        vm.prank(ownerWallet);
+        assertEq(drip.stop(ownerCold), FUND - sent, "the accrued days come back too");
+        assertEq(coin.balanceOf(ownerCold), FUND - sent);
         assertEq(coin.balanceOf(address(dist)), sent);
         assertEq(drip.sent(), sent);
         vm.prank(guardian);
@@ -589,7 +589,7 @@ contract BorroDripTest is BorroDripBase {
     // ------------------------------------------------------------------ stop()
 
     function testFuzz_only_the_owner_can_stop(address who, address to) public {
-        vm.assume(who != roy);
+        vm.assume(who != ownerWallet);
         vm.assume(to != address(0));
         fund(FUND);
         startAt(T0 + 1);
@@ -612,10 +612,10 @@ contract BorroDripTest is BorroDripBase {
         vm.warp(vm.getBlockTimestamp() + 3 hours);
         uint256 stopTime = vm.getBlockTimestamp();
         vm.expectEmit(address(drip));
-        emit BorroDrip.Stopped(royCold, FUND - sent, stopTime);
-        vm.prank(roy);
-        assertEq(drip.stop(royCold), FUND - sent);
-        assertEq(coin.balanceOf(royCold), FUND - sent);
+        emit BorroDrip.Stopped(ownerCold, FUND - sent, stopTime);
+        vm.prank(ownerWallet);
+        assertEq(drip.stop(ownerCold), FUND - sent);
+        assertEq(coin.balanceOf(ownerCold), FUND - sent);
         assertEq(coin.balanceOf(address(drip)), 0);
         assertEq(coin.balanceOf(address(dist)), sent);
         assertEq(drip.stoppedAt(), stopTime);
@@ -631,30 +631,30 @@ contract BorroDripTest is BorroDripBase {
         assertEq(drip.scheduled(vm.getBlockTimestamp()), FUND);
         // Tokens sent after the stop: a second stop sweeps them; stoppedAt stays the first.
         fund(123e18);
-        address royVault = makeAddr("royVault");
+        address ownerVault = makeAddr("ownerVault");
         vm.expectEmit(address(drip));
-        emit BorroDrip.Stopped(royVault, 123e18, stopTime);
-        vm.prank(roy);
-        assertEq(drip.stop(royVault), 123e18);
-        assertEq(coin.balanceOf(royVault), 123e18);
+        emit BorroDrip.Stopped(ownerVault, 123e18, stopTime);
+        vm.prank(ownerWallet);
+        assertEq(drip.stop(ownerVault), 123e18);
+        assertEq(coin.balanceOf(ownerVault), 123e18);
         assertEq(drip.stoppedAt(), stopTime);
         // With nothing held it sends nothing and still succeeds.
-        vm.prank(roy);
-        assertEq(drip.stop(royCold), 0);
+        vm.prank(ownerWallet);
+        assertEq(drip.stop(ownerCold), 0);
         assertEq(drip.sent(), sent);
     }
 
     function test_stop_to_zero_is_refused() public {
         fund(FUND);
-        vm.prank(roy);
+        vm.prank(ownerWallet);
         vm.expectRevert(BorroDrip.ZeroAddress.selector);
         drip.stop(address(0));
         assertEq(drip.stoppedAt(), 0);
         startAt(T0 + 1);
-        vm.prank(roy);
-        drip.stop(royCold);
+        vm.prank(ownerWallet);
+        drip.stop(ownerCold);
         fund(1e18);
-        vm.prank(roy);
+        vm.prank(ownerWallet);
         vm.expectRevert(BorroDrip.ZeroAddress.selector);
         drip.stop(address(0));
         assertEq(coin.balanceOf(address(drip)), 1e18);
@@ -665,20 +665,20 @@ contract BorroDripTest is BorroDripBase {
         startAt(T0 + 1);
         vm.warp(T0 + DURATION + 1);
         assertEq(drip.drip(), FUND);
-        vm.prank(roy);
-        assertEq(drip.stop(royCold), 0);
+        vm.prank(ownerWallet);
+        assertEq(drip.stop(ownerCold), 0);
     }
 
     // ------------------------------------------------------------------ ownership
 
     function test_renounce_is_refused() public {
-        vm.prank(roy);
+        vm.prank(ownerWallet);
         vm.expectRevert(BorroDrip.NoRenounce.selector);
         drip.renounceOwnership();
         vm.prank(eve);
         vm.expectRevert(BorroDrip.NoRenounce.selector);
         drip.renounceOwnership();
-        assertEq(drip.owner(), roy);
+        assertEq(drip.owner(), ownerWallet);
     }
 
     function test_ownership_moves_in_two_steps() public {
@@ -686,9 +686,9 @@ contract BorroDripTest is BorroDripBase {
         vm.prank(eve);
         vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, eve));
         drip.transferOwnership(eve);
-        vm.prank(roy);
+        vm.prank(ownerWallet);
         drip.transferOwnership(next);
-        assertEq(drip.owner(), roy);
+        assertEq(drip.owner(), ownerWallet);
         assertEq(drip.pendingOwner(), next);
         // Named but not yet the owner: it cannot start or stop.
         fund(FUND);
@@ -706,28 +706,28 @@ contract BorroDripTest is BorroDripBase {
         drip.acceptOwnership();
         assertEq(drip.owner(), next);
         assertEq(drip.pendingOwner(), address(0));
-        // Roy no longer can; the new owner can.
-        vm.prank(roy);
-        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, roy));
+        // The owner no longer can; the new owner can.
+        vm.prank(ownerWallet);
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, ownerWallet));
         drip.start();
         vm.prank(next);
         drip.start();
-        vm.prank(roy);
-        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, roy));
-        drip.stop(roy);
+        vm.prank(ownerWallet);
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, ownerWallet));
+        drip.stop(ownerWallet);
         vm.prank(next);
         assertEq(drip.stop(next), FUND);
     }
 
     function test_a_mistaken_handover_can_be_cancelled_before_it_is_accepted() public {
-        vm.prank(roy);
+        vm.prank(ownerWallet);
         drip.transferOwnership(eve);
-        vm.prank(roy);
+        vm.prank(ownerWallet);
         drip.transferOwnership(address(0));
         vm.prank(eve);
         vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, eve));
         drip.acceptOwnership();
-        assertEq(drip.owner(), roy);
+        assertEq(drip.owner(), ownerWallet);
     }
 
     // ------------------------------------------------------------------ fuzz
@@ -764,7 +764,7 @@ contract BorroDripTest is BorroDripBase {
             t += bound(uint256(keccak256(abi.encode(seed, i))), 0, 60 days);
             vm.warp(t);
             if (drip.startedAt() == 0 && t >= s) {
-                vm.prank(roy);
+                vm.prank(ownerWallet);
                 drip.start();
             }
             address caller = address(uint160(uint256(keccak256(abi.encode(seed, i, "caller")))));
@@ -777,7 +777,7 @@ contract BorroDripTest is BorroDripBase {
             assertEq(coin.balanceOf(address(dist)), drip.sent());
         }
         if (drip.startedAt() == 0) {
-            vm.prank(roy);
+            vm.prank(ownerWallet);
             drip.start();
         }
         uint256 end = drip.startedAt() + DURATION;
@@ -789,7 +789,7 @@ contract BorroDripTest is BorroDripBase {
         assertEq(coin.paidToCount(), 1);
     }
 
-    /// Whenever Roy stops, before or after start, with or without a drip first and strays, he gets exactly what was
+    /// Whenever the owner stops, before or after start, with or without a drip first and strays, he gets exactly what was
     /// funded less what was sent.
     function testFuzz_stop_returns_exactly_funded_less_sent(
         uint256 funded,
@@ -812,10 +812,10 @@ contract BorroDripTest is BorroDripBase {
         if (dripFirst) drip.drip();
         vm.warp(stopAt);
         uint256 sent = drip.sent();
-        vm.prank(roy);
-        uint256 back = drip.stop(royCold);
+        vm.prank(ownerWallet);
+        uint256 back = drip.stop(ownerCold);
         assertEq(back, funded + stray - sent);
-        assertEq(coin.balanceOf(royCold), funded + stray - sent);
+        assertEq(coin.balanceOf(ownerCold), funded + stray - sent);
         assertEq(coin.balanceOf(address(dist)), sent);
         assertEq(coin.balanceOf(address(drip)), 0);
         assertEq(drip.stoppedAt(), stopAt);
@@ -827,7 +827,7 @@ contract BorroDripTest is BorroDripBase {
     function test_gas() public {
         fund(FUND);
         vm.warp(T0 + 1 hours);
-        vm.prank(roy);
+        vm.prank(ownerWallet);
         uint256 g = gasleft();
         drip.start();
         emit log_named_uint("gas start()", g - gasleft());
@@ -843,9 +843,9 @@ contract BorroDripTest is BorroDripBase {
         g = gasleft();
         drip.drip();
         emit log_named_uint("gas drip(), in the last period", g - gasleft());
-        vm.prank(roy);
+        vm.prank(ownerWallet);
         g = gasleft();
-        drip.stop(royCold);
+        drip.stop(ownerCold);
         emit log_named_uint("gas stop()", g - gasleft());
     }
 }
@@ -884,9 +884,9 @@ contract BorroDripDistributorTest is BorroDripBase {
         (bytes32 r2, bytes32[] memory l2) = two(alice, 150_000e18, bob, 100_000e18);
         vm.prank(keeper);
         dist.proposeRoot(r2, 250_000e18);
-        // Roy stops: everything not yet let out comes back at once; what was let out stays in the distributor.
-        vm.prank(roy);
-        uint256 back = drip.stop(royCold);
+        // The owner stops: everything not yet let out comes back at once; what was let out stays in the distributor.
+        vm.prank(ownerWallet);
+        uint256 back = drip.stop(ownerCold);
         assertEq(back, FUND - d1 - d2);
         // The Safe takes back what no root promises, never the waiting root's.
         uint256 owed = 250_000e18 - 60_000e18;
@@ -894,12 +894,12 @@ contract BorroDripDistributorTest is BorroDripBase {
         assertEq(free, d1 + d2 - 60_000e18 - owed);
         vm.prank(safe);
         vm.expectRevert(abi.encodeWithSelector(BorroDistributor.OverReclaimable.selector, free + 1, free));
-        dist.reclaim(royCold, free + 1);
+        dist.reclaim(ownerCold, free + 1);
         vm.prank(keeper);
         vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, keeper));
         dist.reclaim(keeper, 1);
         vm.prank(safe);
-        dist.reclaim(royCold, free);
+        dist.reclaim(ownerCold, free);
         assertEq(coin.balanceOf(address(dist)), owed);
         // Every promise still pays, after the stop and the reclaim: bob's from the live root now, the rest once the
         // waiting root is live.
@@ -910,8 +910,8 @@ contract BorroDripDistributorTest is BorroDripBase {
         assertEq(coin.balanceOf(alice), 150_000e18);
         assertEq(coin.balanceOf(bob), 100_000e18);
         assertEq(coin.balanceOf(address(dist)), 0);
-        assertEq(coin.balanceOf(royCold), back + free);
-        assertEq(coin.balanceOf(royCold) + 250_000e18, FUND, "every token is with a depositor or back with Roy");
+        assertEq(coin.balanceOf(ownerCold), back + free);
+        assertEq(coin.balanceOf(ownerCold) + 250_000e18, FUND, "every token is with a depositor or back with the owner");
         // Nothing more can be promised: it is not held.
         vm.warp(vm.getBlockTimestamp() + 1 days);
         vm.prank(keeper);
@@ -919,10 +919,10 @@ contract BorroDripDistributorTest is BorroDripBase {
         dist.proposeRoot(bytes32(uint256(1)), 250_000e18 + 1);
         vm.expectRevert(BorroDrip.IsStopped.selector);
         drip.drip();
-        // The drip only ever paid the distributor and Roy's chosen address.
+        // The drip only ever paid the distributor and the owner's chosen address.
         assertEq(coin.paidToCount(), 2);
         assertEq(coin.paidFromWatched(address(dist)), d1 + d2);
-        assertEq(coin.paidFromWatched(royCold), back);
+        assertEq(coin.paidFromWatched(ownerCold), back);
     }
 
     /// The deploy script's limit (twice the first period's rate for 50M) lets the keeper promise everything the drip
@@ -967,7 +967,7 @@ contract BorroDripDistributorTest is BorroDripBase {
         assertEq(coin.balanceOf(eve), 0);
     }
 
-    /// Whenever Roy stops and the Safe reclaims, every promised token still pays.
+    /// Whenever the owner stops and the Safe reclaims, every promised token still pays.
     function testFuzz_promises_survive_stop_and_reclaim(uint256 days_, uint256 pct, uint256 stopDelay, bool waiting) public {
         days_ = bound(days_, 1, 60);
         pct = bound(pct, 0, 100);
@@ -981,16 +981,16 @@ contract BorroDripDistributorTest is BorroDripBase {
         dist.proposeRoot(DripTree.leaf(alice, promised), promised);
         if (!waiting) vm.warp(vm.getBlockTimestamp() + dist.ROOT_DELAY());
         vm.warp(vm.getBlockTimestamp() + bound(stopDelay, 0, 30 days));
-        vm.prank(roy);
-        drip.stop(royCold);
+        vm.prank(ownerWallet);
+        drip.stop(ownerCold);
         uint256 free = dist.reclaimable();
         assertEq(free, drip.sent() - promised);
         vm.prank(safe);
-        dist.reclaim(royCold, free);
+        dist.reclaim(ownerCold, free);
         assertEq(coin.balanceOf(address(dist)), promised);
         if (waiting) vm.warp(vm.getBlockTimestamp() + dist.ROOT_DELAY());
         if (promised > 0) assertEq(dist.claim(alice, promised, new bytes32[](0)), promised);
-        assertEq(coin.balanceOf(alice) + coin.balanceOf(royCold), FUND);
+        assertEq(coin.balanceOf(alice) + coin.balanceOf(ownerCold), FUND);
     }
 }
 
@@ -1000,7 +1000,7 @@ contract DripHandler is Test {
     BorroDrip public drip;
     WatchedCoin public coin;
     address public dist;
-    address public roy;
+    address public ownerWallet;
     address public holder;
     address[] public recipients; // where the owner may send a stop
     address[] public outsiders; // call drip(), try everything else; never receive
@@ -1022,16 +1022,16 @@ contract DripHandler is Test {
     uint256 public pauses;
     uint256 public pausedDrips; // drips tried while the distributor was paused (each must send nothing)
 
-    constructor(BorroDrip d, WatchedCoin c, address roy_, address holder_, uint256 startGate_, uint256 stopGate_) {
+    constructor(BorroDrip d, WatchedCoin c, address ownerWallet_, address holder_, uint256 startGate_, uint256 stopGate_) {
         drip = d;
         coin = c;
         dist = d.distributor();
-        roy = roy_;
+        ownerWallet = ownerWallet_;
         holder = holder_;
         startGate = startGate_;
         stopGate = stopGate_;
-        recipients.push(roy_);
-        recipients.push(makeAddr("royCold"));
+        recipients.push(ownerWallet_);
+        recipients.push(makeAddr("ownerCold"));
         recipients.push(makeAddr("hoardSafe"));
         outsiders.push(makeAddr("eve"));
         outsiders.push(makeAddr("mallory"));
@@ -1068,7 +1068,7 @@ contract DripHandler is Test {
         if (uint256(keccak256(abi.encode(gate))) % startGate != 0) return; // hashed: fuzzers favour 0
         uint256 held = coin.balanceOf(address(drip));
         bool may = drip.startedAt() == 0 && drip.stoppedAt() == 0 && held > 0;
-        vm.prank(roy);
+        vm.prank(ownerWallet);
         try drip.start() returns (uint256 total) {
             assertTrue(may, "a start went through that should not");
             assertEq(total, held, "total is the balance at start");
@@ -1078,7 +1078,7 @@ contract DripHandler is Test {
             startTime = vm.getBlockTimestamp();
             starts++;
         } catch (bytes memory err) {
-            assertFalse(may, "the owner's start failed");
+            assertFalse(may, "The owner's start failed");
             bytes4 sel = bytes4(err);
             assertTrue(
                 sel == BorroDrip.AlreadyStarted.selector || sel == BorroDrip.IsStopped.selector
@@ -1133,7 +1133,7 @@ contract DripHandler is Test {
         uint256 held = coin.balanceOf(address(drip));
         uint256 before = coin.balanceOf(r);
         bool first = drip.stoppedAt() == 0;
-        vm.prank(roy);
+        vm.prank(ownerWallet);
         uint256 got = drip.stop(r);
         assertEq(got, held, "stop sends the whole balance");
         assertEq(coin.balanceOf(r), before + got);
@@ -1182,7 +1182,7 @@ contract BorroDripInvariantTest is StdInvariant, BorroDripBase {
 
     function setUp() public virtual override {
         super.setUp();
-        handler = new DripHandler(drip, coin, roy, holder, 3, 64);
+        handler = new DripHandler(drip, coin, ownerWallet, holder, 3, 64);
         targetContract(address(handler));
         bytes4[] memory sel = new bytes4[](7);
         sel[0] = DripHandler.warp.selector;
@@ -1244,7 +1244,7 @@ contract BorroDripInvariantTest is StdInvariant, BorroDripBase {
     /// forge-config: default.invariant.fail-on-revert = true
     function invariant_no_one_else_controls_it() public view {
         assertEq(handler.sneaks(), 0);
-        assertEq(drip.owner(), roy);
+        assertEq(drip.owner(), ownerWallet);
         assertEq(drip.pendingOwner(), address(0));
     }
 
@@ -1266,19 +1266,19 @@ contract BorroDripInvariantTest is StdInvariant, BorroDripBase {
             assertEq(drip.sent(), drip.total());
         }
         uint256 held = coin.balanceOf(address(drip));
-        vm.prank(roy);
-        assertEq(drip.stop(royCold), held);
+        vm.prank(ownerWallet);
+        assertEq(drip.stop(ownerCold), held);
         assertEq(coin.balanceOf(address(drip)), 0);
     }
 }
 
-/// The same, from a drip Roy funded with 50M and started before the first call, so every run is spent running.
+/// The same, from a drip the owner funded with 50M and started before the first call, so every run is spent running.
 contract BorroDripStartedInvariantTest is BorroDripInvariantTest {
     function setUp() public override {
         super.setUp();
         fund(FUND);
         vm.warp(T0 + 4 hours + 1);
-        vm.prank(roy);
+        vm.prank(ownerWallet);
         drip.start();
         handler.noteFunded(FUND, FUND, T0 + 4 hours + 1);
     }

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Deploys Borro's covered calls vaults (docs/COVERED-CALLS.md) for real: Roy runs this himself, in his own Terminal.
+# Deploys Borro's covered calls vaults (docs/COVERED-CALLS.md) for real: the owner runs this, in his own Terminal.
 # One BorroCalls per stock in CALLS_STOCKS (default all nine desks: SPY,QQQ,NVDA,TSLA,MSTR,COIN,PLTR,SPCX,GME), each
 # owned by the Hoard Safe from the start, so there is nothing for the Safe to accept afterwards.
 #
@@ -22,7 +22,7 @@ export PATH="$HOME/.foundry/bin:$PATH"
 unset DEPLOYER_PRIVATE_KEY FORCE # a stray key or override in the shell never applies here
 DEPLOYER=0x82c33e1c6Ef8d4704d0AD064585D1FB4f83681E6
 SAFE=0x8A22d6e75e9427b9D57e42a7984200029e7E173C
-# BORRO_RPC_URL already set to a local chain: a test (keeper/test/calls.fork.mjs). Otherwise Roy's endpoint, and then
+# BORRO_RPC_URL already set to a local chain: a test (keeper/test/calls.fork.mjs). Otherwise the owner's endpoint, and then
 # nothing a test may set (another record, another key file or deployer, extra forge flags) is taken from the shell.
 FORGE_EXTRA_ARGS=()
 case "${BORRO_RPC_URL:-}" in

@@ -11,10 +11,10 @@ interface IPaysToken {
 }
 
 /// @title BorroDrip
-/// @notice Holds Roy's $BORRO and lets it out to Borro's depositors over 104 weeks, halving every 26 weeks.
-///         Roy, 2026-10-07: "drip out over a long time horizon so that it incentivizes long term holding and use of
+/// @notice Holds the owner's $BORRO and lets it out to Borro's depositors over 104 weeks, halving every 26 weeks.
+///         2026-10-07: "drip out over a long time horizon so that it incentivizes long term holding and use of
 ///         the platform rather than short term".
-/// @dev Roy funds it with a plain transfer, then calls start(). start() fixes the schedule: `total` is what the
+/// @dev the owner funds it with a plain transfer, then calls start(). start() fixes the schedule: `total` is what the
 ///      contract holds at that moment, and the schedule runs from that moment over four periods of PERIOD (26 weeks)
 ///      each. Each period lets out half as much as the one before: 8/15, 4/15, 2/15 and 1/15 of the total, the last
 ///      taking the rounding remainder, at a steady rate within each period. So the daily amount halves at each
@@ -24,7 +24,7 @@ interface IPaysToken {
 ///      distributor (a BorroDistributor for $BORRO, checked at deploy). The keeper's drip job calls it once a day and
 ///      shares it out from there. Nothing else ever leaves, except by stop().
 ///
-///      The owner (Roy's wallet; two-step transfer, no renounce) has two powers: start() once, and stop(to), which
+///      The owner (the owner's wallet; two-step transfer, no renounce) has two powers: start() once, and stop(to), which
 ///      sends every token this contract still holds (everything not yet let out) to `to`, at once, and ends the
 ///      schedule for good (before or after start()). stop() can be called again later and sends whatever has arrived
 ///      since, so a token sent here by mistake is never stuck. What was already let out sits in the distributor,
@@ -58,7 +58,7 @@ contract BorroDrip is Ownable2Step {
 
     /// @param token_ $BORRO.
     /// @param distributor_ The distributor every drip goes to. It must pay `token_`.
-    /// @param owner_ The only address that can start and stop the drip (Roy's wallet).
+    /// @param owner_ The only address that can start and stop the drip (the owner's wallet).
     constructor(IERC20 token_, address distributor_, address owner_) Ownable(owner_) {
         if (address(token_) == address(0) || distributor_ == address(0)) revert ZeroAddress();
         if (IPaysToken(distributor_).token() != token_) revert WrongToken();

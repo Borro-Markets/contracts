@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Deploys Borrow ETH (docs/BORROW-ETH.md) for real. Roy runs this himself, in his own Terminal. Dry run first (sends
+# Deploys Borrow ETH (docs/BORROW-ETH.md) for real. The owner runs this, in his own Terminal. Dry run first (sends
 # nothing, prints the plan), then asks before sending. Reads the RPC and the deployer key from their files without
 # printing either. Writes script/out/borrow-eth.json, with the deploy's chain block taken from the receipts
 # (block.number inside a forge script on this chain is the parent chain's block).
@@ -8,7 +8,7 @@
 #   LLTV=385000000000000000  LLTV_<SYMBOL>=...  CAP_TOTAL=10e18  CAP_BIG=2e18  CAP_SMALL=1e18  BIG=SPY,QQQ,NVDA
 #   WEEKEND_LIQ=true  DEAD_DEPOSITS=false  OWNER=<Hoard Safe>  KEEPER=<keeper>  TIMELOCK=259200
 # DEAD_DEPOSITS=true wraps 0.00019 ETH of the deployer's and leaves it in bETH and the nine markets for good. Only with
-# Roy's yes.
+# The owner's yes.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 export PATH="$HOME/.foundry/bin:$PATH"

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Deploys the new $BORRO payout distributor, the one with the owner's reclaim of anything no payout has promised
-# (Roy runs this himself). Dry run first, then asks before sending. Reads the RPC and the deployer key from their
+# (the owner runs this). Dry run first, then asks before sending. Reads the RPC and the deployer key from their
 # files without printing either; writes script/out/pons-distributor-v2.json.
 set -euo pipefail
 cd "$(dirname "$0")/.."

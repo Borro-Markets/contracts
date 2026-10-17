@@ -84,7 +84,7 @@ contract StockDistributorBase is Test {
     address alice = makeAddr("alice");
     address bob = makeAddr("bob");
     address carol = makeAddr("carol");
-    address roy = makeAddr("roy");
+    address ownerWallet = makeAddr("ownerWallet");
     address eve = makeAddr("eve");
     uint256 constant RATE = 1e30; // effectively no growth limit, unless a test sets one
 
@@ -378,14 +378,14 @@ contract StockDistributorTest is StockDistributorBase {
         assertEq(dist.reclaimable(address(spy)), 7e18);
         vm.prank(safe);
         vm.expectRevert(abi.encodeWithSelector(StockDistributor.OverReclaimable.selector, address(nvda), 70e18 + 1, 70e18));
-        dist.reclaim(address(nvda), roy, 70e18 + 1);
+        dist.reclaim(address(nvda), ownerWallet, 70e18 + 1);
         vm.prank(keeper);
         vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, keeper));
         dist.reclaim(address(nvda), keeper, 1);
         vm.startPrank(safe);
-        dist.reclaim(address(nvda), roy, 70e18);
-        dist.reclaim(address(tsla), roy, 38e18);
-        dist.reclaim(address(spy), roy, 7e18);
+        dist.reclaim(address(nvda), ownerWallet, 70e18);
+        dist.reclaim(address(tsla), ownerWallet, 38e18);
+        dist.reclaim(address(spy), ownerWallet, 7e18);
         vm.stopPrank();
         // Every account is still paid in full.
         vm.warp(block.timestamp + 2 hours);
@@ -415,11 +415,11 @@ contract StockDistributorTest is StockDistributorBase {
         usdg.mint(address(dist), 5e6);
         assertEq(dist.reclaimable(address(usdg)), 5e6);
         vm.startPrank(safe);
-        dist.reclaim(address(usdg), roy, 5e6);
-        dist.reclaim(address(nvda), roy, 90e18);
+        dist.reclaim(address(usdg), ownerWallet, 5e6);
+        dist.reclaim(address(nvda), ownerWallet, 90e18);
         vm.stopPrank();
-        assertEq(usdg.balanceOf(roy), 5e6);
-        assertEq(nvda.balanceOf(roy), 90e18);
+        assertEq(usdg.balanceOf(ownerWallet), 5e6);
+        assertEq(nvda.balanceOf(ownerWallet), 90e18);
     }
 
     function test_owner_lists_more_tokens_and_sets_roles() public {
@@ -454,11 +454,11 @@ contract StockDistributorTest is StockDistributorBase {
 
     function test_ownership_moves_in_two_steps() public {
         vm.prank(safe);
-        dist.transferOwnership(roy);
+        dist.transferOwnership(ownerWallet);
         assertEq(dist.owner(), safe);
-        vm.prank(roy);
+        vm.prank(ownerWallet);
         dist.acceptOwnership();
-        assertEq(dist.owner(), roy);
+        assertEq(dist.owner(), ownerWallet);
     }
 
     function test_too_many_tokens() public {
@@ -541,7 +541,7 @@ contract StockDistributorTest is StockDistributorBase {
         ask = bound(ask, 0, 200e18);
         vm.prank(safe);
         if (ask > free) vm.expectRevert();
-        dist.reclaim(address(nvda), roy, ask);
+        dist.reclaim(address(nvda), ownerWallet, ask);
         assertGe(nvda.balanceOf(address(dist)), owed);
         // Alice can still take all of it.
         if (owed > 0) {
@@ -590,7 +590,7 @@ contract StockHandler is Test {
     address safe;
     address keeper;
     address guardian;
-    address roy;
+    address ownerWallet;
     address[] public accounts; // may appear in trees
     address[] public outsiders; // send claims, never in a tree
     mapping(bytes32 root => bytes32[] leaves) treeLeaves;
@@ -609,13 +609,13 @@ contract StockHandler is Test {
     uint256 public reclaims;
     uint256 public proposals;
 
-    constructor(StockDistributor d, Stock[] memory s, address safe_, address keeper_, address guardian_, address roy_) {
+    constructor(StockDistributor d, Stock[] memory s, address safe_, address keeper_, address guardian_, address ownerWallet_) {
         dist = d;
         stocks = s;
         safe = safe_;
         keeper = keeper_;
         guardian = guardian_;
-        roy = roy_;
+        ownerWallet = ownerWallet_;
         for (uint256 i; i < 4; ++i) accounts.push(makeAddr(string.concat("acct", vm.toString(i))));
         for (uint256 i; i < 3; ++i) outsiders.push(makeAddr(string.concat("outsider", vm.toString(i))));
     }
@@ -800,7 +800,7 @@ contract StockHandler is Test {
         uint256 free = dist.reclaimable(address(t));
         amount = tooMuch ? free + bound(amount, 1, 1e18) : bound(amount, 0, free);
         vm.prank(safe);
-        try dist.reclaim(address(t), roy, amount) {
+        try dist.reclaim(address(t), ownerWallet, amount) {
             reclaims++;
             assertLe(amount, free, "never more than reclaimable");
         } catch {
@@ -836,7 +836,7 @@ contract StockDistributorInvariantTest is StdInvariant, StockDistributorBase {
         s[0] = nvda;
         s[1] = tsla;
         s[2] = spy;
-        handler = new StockHandler(dist, s, safe, keeper, guardian, roy);
+        handler = new StockHandler(dist, s, safe, keeper, guardian, ownerWallet);
         targetContract(address(handler));
         bytes4[] memory sel = new bytes4[](10);
         sel[0] = StockHandler.proposeHonest.selector;
@@ -885,7 +885,7 @@ contract StockDistributorInvariantTest is StdInvariant, StockDistributorBase {
     }
 
     /// Every token that left by a claim sits with an account (sum of balances of everyone who could receive equals
-    /// what was claimed, plus what the owner reclaimed to roy).
+    /// what was claimed, plus what the owner reclaimed to ownerWallet).
     function invariant_claims_add_up() public view {
         for (uint256 k; k < handler.stockCount(); ++k) {
             Stock t = handler.stock(k);

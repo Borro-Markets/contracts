@@ -87,7 +87,7 @@ contract BorroHookReviewForkTest is Test {
         Desk[] memory ds = abi.decode(vm.parseJson(vm.readFile("script/out/desks.json"), ".desks"), (Desk[]));
         for (uint256 i; i < ds.length; i++) desks.push(ds[i]);
 
-        // The deploy script itself, as Roy runs it (its record goes to a file of its own, removed below).
+        // The deploy script itself, as the owner runs it (its record goes to a file of its own, removed below).
         vm.setEnv("HOOK_OUT", "borro-hook-reviewfork");
         DeployBorroHook script = new DeployBorroHook();
         hook = script.run();

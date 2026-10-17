@@ -40,7 +40,7 @@ interface ICallsDesks {
 ///   forge script script/BorroCalls.s.sol --rpc-url <rpc> --sender <deployer>            (dry run, nothing sent)
 ///   DEPLOYER_PRIVATE_KEY=... DEPLOYER_ADDRESS=... forge script ... --broadcast --slow      (for real)
 ///
-/// Roy runs contracts/script/deploy-calls.sh, which does both. Writes script/out/calls.json on a real run
+/// The owner runs contracts/script/deploy-calls.sh, which does both. Writes script/out/calls.json on a real run
 /// (calls.dryrun.json on a dry run; CALLS_OUT names another record, for tests). Its "block" is filled in by the wrapper
 /// from the receipts (block.number in a script on this chain reads the parent chain's).
 contract DeployBorroCalls is Script {

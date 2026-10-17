@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Deploys curated coins for real (Roy runs this himself): the add-on beside the Pons coin shorts (docs/COIN-SHORTS.md,
+# Deploys curated coins for real (the owner runs this): the add-on beside the Pons coin shorts (docs/COIN-SHORTS.md,
 # phase 2): CoinLens, CuratedFeeds, CuratedListing, CoinRouter, CuratedShort (and its cUSDG), CuratedLiquidator,
 # CuratedLoans and CuratedLoanLiquidator,
 # owned by the Hoard Safe from the start. A dry run first, then it asks before sending. Reads the RPC and the deployer

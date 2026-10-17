@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Deploys LeverRouter (one-click leveraged longs) for real (Roy runs this himself). Dry run first, then asks before
+# Deploys LeverRouter (one-click leveraged longs) for real (the owner runs this). Dry run first, then asks before
 # sending. Reads the RPC and the deployer key from their files without printing either; writes
 # script/out/lever-router.json with the deploy's chain block from the receipt (block.number inside a forge script on
 # this chain is the parent chain's block).

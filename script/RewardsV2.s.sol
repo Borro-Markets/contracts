@@ -7,7 +7,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {BorroRewards} from "../src/BorroRewards.sol";
 import {BorroRewardsV2} from "../src/BorroRewardsV2.sol";
 
-/// Deploys BorroRewardsV2: the prize and rent pots with a way back for money the team puts in (Roy, 2026-10-05:
+/// Deploys BorroRewardsV2: the prize and rent pots with a way back for money the team puts in (2026-10-05:
 /// "yes build the replacement contract with a reclaim"). Everything else is copied from the live first version so
 /// nothing changes for users: the same USDG, the same shorting contract (the only one that can report a close), and
 /// the terms in force now. The Hoard Safe owns it directly (no transfer to accept). Switching to it is one Safe

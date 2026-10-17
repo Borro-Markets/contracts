@@ -322,7 +322,7 @@ contract AddDesks is Script, StockList {
         console2.log("wrote", string.concat("script/out/", name));
     }
 
-    /// A Safe Transaction Builder batch, the shape Roy has signed before (raw data, no ABI: the description
+    /// A Safe Transaction Builder batch, the shape the owner has signed before (raw data, no ABI: the description
     /// says what each transaction is, in order).
     function _writeBatch(string memory name, string memory title, string memory description, AddDesksLib.Call[] memory calls) internal {
         string memory what;

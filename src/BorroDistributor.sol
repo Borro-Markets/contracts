@@ -21,9 +21,9 @@ import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProo
 ///      The guardian can pause claims and proposals, and while paused can throw out a waiting root even after
 ///      its wait is over. Only the owner (the Safe) names the updater and the guardian, and they must differ.
 ///      Anyone can claim for any account; the tokens always go to the account. Tokens leave by claims, and by
-///      the owner's reclaim of what no root promises: the owner (the Safe) can take back, at once, any tokens
+///      The owner's reclaim of what no root promises: the owner (the Safe) can take back, at once, any tokens
 ///      beyond what the root in force and any waiting root still owe, never a token an account is owed.
-///      Roy, 2026-10-06: "if no one uses it i want to be sure i can pull it back out no problems instantly".
+///      2026-10-06: "if no one uses it i want to be sure i can pull it back out no problems instantly".
 ///      Leaves are hashed twice, keccak256(bytes.concat(keccak256(abi.encode(account, cumulativeAmount)))), so a
 ///      leaf can never pass for an inner node of the tree. Pairs are hashed sorted (OpenZeppelin's MerkleProof).
 contract BorroDistributor is Ownable2Step {

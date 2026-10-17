@@ -12,12 +12,12 @@ import {TeamReserve} from "../src/TeamReserve.sol";
 ///   forge script script/TeamReserve.s.sol --rpc-url robinhood --sender <deployer>          (dry run)
 ///   DEPLOYER_PRIVATE_KEY=... forge script ... --broadcast --slow                           (for real)
 ///
-/// Roy runs contracts/script/deploy-team-reserve.sh, which does both and asks in between.
+/// The owner runs contracts/script/deploy-team-reserve.sh, which does both and asks in between.
 ///
 /// Owner OWNER (default the Hoard Safe): the only address that can grant, revoke, queue and cancel withdrawals. It
 /// must not be the deployer, the keeper or the guardian (hot keys), and it must be a contract (a Safe) unless
 /// ALLOW_EOA_OWNER=1. EXPECTED_AMOUNT (whole $BORRO, default 34,100,000) is only printed and recorded: what goes in
-/// is whatever Roy transfers afterwards.
+/// is whatever the owner transfers afterwards.
 ///
 /// Writes script/out/team-reserve.json (or RESERVE_OUT, inside script/out). Its "block" is block.number, which on
 /// Robinhood Chain is the PARENT chain's block: deploy-team-reserve.sh replaces it with the receipt's block.

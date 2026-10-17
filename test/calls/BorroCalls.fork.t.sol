@@ -503,7 +503,7 @@ contract BorroCallsForkTest is Test {
 
     /// The Safe at every extreme of its powers: pause, the widest settings, reclaim. Nobody's money moves.
     function test_fork_the_safe_at_every_extreme_takes_nothing() public onFork {
-        uint256 safeB = IStockVault(BNVDA).balanceOf(SAFE); // Roy's seed, lent on Borro
+        uint256 safeB = IStockVault(BNVDA).balanceOf(SAFE); // The owner's seed, lent on Borro
         uint256 safeU = USDG.balanceOf(SAFE);
         _depositStock(alice, 10e18);
         uint256 id = _startWeek(lastPrice);

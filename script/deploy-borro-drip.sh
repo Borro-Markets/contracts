@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Deploys Borro's depositor drip for real (Roy runs this himself, in his own Terminal): three contracts.
+# Deploys Borro's depositor drip for real (the owner runs this, in his own Terminal): three contracts.
 #   BorroDistributor  the drip's own, owned by the Hoard Safe, the keeper as updater, the guardian wallet as guardian
-#   BorroDrip         owned by Roy's launch wallet: lets the $BORRO out to depositors over 104 weeks, halving every 26
+#   BorroDrip         owned by the launch wallet: lets the $BORRO out to depositors over 104 weeks, halving every 26
 #   BorroLock         no owner: holders lock their own $BORRO there for a boost on the drip; $BORRO sent to it
 #                     outside lock() can be skimmed by anyone to the Hoard Safe
 # docs/OPS.md, "Depositor drip".
@@ -14,11 +14,11 @@
 #    chain, and writes script/out/borro-drip.json with each contract's receipt block ("block" is the distributor's;
 #    the script itself can only see the parent chain's block number, kept as "parentChainBlock").
 #
-# Nothing is funded or started here. Afterwards Roy sends the $BORRO to the drip himself and calls start() from the
+# Nothing is funded or started here. Afterwards the owner sends the $BORRO to the drip himself and calls start() from the
 # owner wallet; the steps are printed at the end.
 #
 # The RPC URL and the deployer key are read from their files and handed to forge through the environment: neither is
-# printed or put on a command line. DRIP_OWNER (with CONFIRM_OWNER if it is not Roy's launch wallet), DRIP_DIST_OWNER,
+# printed or put on a command line. DRIP_OWNER (with CONFIRM_OWNER if it is not the launch wallet), DRIP_DIST_OWNER,
 # DRIP_UPDATER, DRIP_GUARDIAN, DRIP_STRAYS, EXPECTED_TOTAL and GROWTH_X100 pass through to the script
 # (script/BorroDrip.s.sol says what each does). The old names OWNER, DIST_OWNER, UPDATER and GUARDIAN are refused.
 set -euo pipefail
@@ -26,7 +26,7 @@ cd "$(dirname "$0")/.."
 export PATH="$HOME/.foundry/bin:$PATH"
 DEPLOYER=0x82c33e1c6Ef8d4704d0AD064585D1FB4f83681E6
 EXPLORER=https://robinhoodchain.blockscout.com
-# BORRO_RPC_URL already set: a test chain (keeper/test/drip-deploy.fork.mjs). Otherwise Roy's endpoint.
+# BORRO_RPC_URL already set: a test chain (keeper/test/drip-deploy.fork.mjs). Otherwise the owner's endpoint.
 if [ -z "${BORRO_RPC_URL:-}" ]; then
   BORRO_RPC_URL="$(cat "$HOME/.config/hoard/rpc_url")"
 fi

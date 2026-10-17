@@ -56,7 +56,7 @@ contract DualAlias {
 /// whole test and read it after a later vm.warp.
 contract TeamReserveBase is Test {
     uint256 constant T0 = 1_800_000_000; // 2027-01-15 08:00 UTC
-    uint256 constant FUND = 34_100_000e18; // what Roy plans to move in
+    uint256 constant FUND = 34_100_000e18; // what the owner plans to move in
     uint256 constant SUPPLY = 1_000_000_000e18;
     uint256 constant MONTH = 2_628_000; // 365 days / 12
     uint256 constant YEAR = 365 days;
@@ -64,11 +64,11 @@ contract TeamReserveBase is Test {
     WatchedCoin coin;
     TeamReserve r;
     address safe = makeAddr("safe"); // the Hoard Safe: owns the reserve
-    address holder = makeAddr("holder"); // the wallet that holds Roy's $BORRO
+    address holder = makeAddr("holder"); // the wallet that holds the owner's $BORRO
     address alice = makeAddr("alice"); // a hire
     address bob = makeAddr("bob"); // another hire
     address eve = makeAddr("eve"); // nobody
-    address royCold = makeAddr("royCold"); // where a withdrawal goes
+    address ownerCold = makeAddr("ownerCold"); // where a withdrawal goes
 
     function setUp() public virtual {
         vm.warp(T0);
@@ -276,7 +276,7 @@ contract TeamReserveTest is TeamReserveBase {
         r.grant(bob, 1, T0);
         vm.prank(safe);
         vm.expectRevert(abi.encodeWithSelector(TeamReserve.NotEnoughUnallocated.selector, 1, 0));
-        r.queueWithdraw(royCold, 1);
+        r.queueWithdraw(ownerCold, 1);
         // More $BORRO arriving is unallocated again.
         fund(5e18);
         assertEq(r.unallocated(), 5e18);
@@ -506,13 +506,13 @@ contract TeamReserveTest is TeamReserveBase {
 
     function test_withdraw_waits_thirty_days() public {
         vm.expectEmit(address(r));
-        emit TeamReserve.WithdrawQueued(0, royCold, 1_000_000e18, T0 + 30 days, T0 + 44 days);
-        uint256 id = queueAs(royCold, 1_000_000e18);
+        emit TeamReserve.WithdrawQueued(0, ownerCold, 1_000_000e18, T0 + 30 days, T0 + 44 days);
+        uint256 id = queueAs(ownerCold, 1_000_000e18);
         assertEq(r.totalQueued(), 1_000_000e18);
         assertEq(r.unallocated(), FUND - 1_000_000e18);
         (address to, uint256 amount, uint256 queuedAt, uint256 readyAt, uint256 expiresAt, TeamReserve.Status st) =
             r.withdrawalInfo(id);
-        assertEq(to, royCold);
+        assertEq(to, ownerCold);
         assertEq(amount, 1_000_000e18);
         assertEq(queuedAt, T0);
         assertEq(readyAt, T0 + 30 days);
@@ -520,7 +520,7 @@ contract TeamReserveTest is TeamReserveBase {
         assertEq(uint8(st), uint8(TeamReserve.Status.Queued));
         (uint256[] memory ids, address[] memory tos, uint256[] memory amounts, uint256[] memory ready) = r.pendingWithdrawals();
         assertEq(ids.length, 1);
-        assertEq(tos[0], royCold);
+        assertEq(tos[0], ownerCold);
         assertEq(amounts[0], 1_000_000e18);
         assertEq(ready[0], T0 + 30 days);
 
@@ -533,10 +533,10 @@ contract TeamReserveTest is TeamReserveBase {
 
         vm.warp(T0 + 30 days);
         vm.expectEmit(address(r));
-        emit TeamReserve.WithdrawExecuted(id, royCold, 1_000_000e18, eve);
+        emit TeamReserve.WithdrawExecuted(id, ownerCold, 1_000_000e18, eve);
         vm.prank(eve); // anyone, and it still goes to `to`
         r.executeWithdraw(id);
-        assertEq(coin.balanceOf(royCold), 1_000_000e18);
+        assertEq(coin.balanceOf(ownerCold), 1_000_000e18);
         assertEq(coin.balanceOf(eve), 0);
         assertEq(r.totalQueued(), 0);
         assertEq(r.unallocated(), FUND - 1_000_000e18);
@@ -550,11 +550,11 @@ contract TeamReserveTest is TeamReserveBase {
     }
 
     function test_withdraw_expires_after_its_window() public {
-        uint256 id = queueAs(royCold, 7e18);
+        uint256 id = queueAs(ownerCold, 7e18);
         vm.warp(T0 + 44 days - 1);
         uint256 snap = vm.snapshotState();
         r.executeWithdraw(id); // the last second of the window
-        assertEq(coin.balanceOf(royCold), 7e18);
+        assertEq(coin.balanceOf(ownerCold), 7e18);
         vm.revertToState(snap);
         vm.warp(T0 + 44 days);
         vm.expectRevert(abi.encodeWithSelector(TeamReserve.Expired.selector, T0 + 44 days));
@@ -569,19 +569,19 @@ contract TeamReserveTest is TeamReserveBase {
         vm.prank(safe);
         r.cancelWithdraw(id);
         assertEq(r.unallocated(), FUND);
-        uint256 again = queueAs(royCold, 7e18);
+        uint256 again = queueAs(ownerCold, 7e18);
         vm.expectRevert(abi.encodeWithSelector(TeamReserve.NotReady.selector, T0 + 430 days));
         r.executeWithdraw(again);
-        assertEq(coin.balanceOf(royCold), 0);
+        assertEq(coin.balanceOf(ownerCold), 0);
     }
 
     function test_withdraw_cancel() public {
-        uint256 id = queueAs(royCold, 5e18);
+        uint256 id = queueAs(ownerCold, 5e18);
         vm.prank(eve);
         vm.expectRevert(notOwner(eve));
         r.cancelWithdraw(id);
         vm.expectEmit(address(r));
-        emit TeamReserve.WithdrawCancelled(id, royCold, 5e18);
+        emit TeamReserve.WithdrawCancelled(id, ownerCold, 5e18);
         vm.prank(safe);
         r.cancelWithdraw(id);
         assertEq(r.totalQueued(), 0);
@@ -592,7 +592,7 @@ contract TeamReserveTest is TeamReserveBase {
         vm.prank(safe);
         vm.expectRevert(abi.encodeWithSelector(TeamReserve.NotQueued.selector, TeamReserve.Status.Cancelled));
         r.cancelWithdraw(id);
-        assertEq(coin.balanceOf(royCold), 0);
+        assertEq(coin.balanceOf(ownerCold), 0);
     }
 
     function test_withdraw_refusals() public {
@@ -605,9 +605,9 @@ contract TeamReserveTest is TeamReserveBase {
         vm.expectRevert(TeamReserve.BadAddress.selector);
         r.queueWithdraw(address(r), 1);
         vm.expectRevert(TeamReserve.ZeroAmount.selector);
-        r.queueWithdraw(royCold, 0);
+        r.queueWithdraw(ownerCold, 0);
         vm.expectRevert(abi.encodeWithSelector(TeamReserve.NotEnoughUnallocated.selector, FUND + 1, FUND));
-        r.queueWithdraw(royCold, FUND + 1);
+        r.queueWithdraw(ownerCold, FUND + 1);
         vm.stopPrank();
         vm.expectRevert(abi.encodeWithSelector(TeamReserve.NoSuchWithdrawal.selector, 0));
         r.executeWithdraw(0);
@@ -616,7 +616,7 @@ contract TeamReserveTest is TeamReserveBase {
     }
 
     function test_queued_amount_is_held_back_from_grants() public {
-        queueAs(royCold, FUND - 10e18);
+        queueAs(ownerCold, FUND - 10e18);
         vm.prank(safe);
         vm.expectRevert(abi.encodeWithSelector(TeamReserve.NotEnoughUnallocated.selector, 11e18, 10e18));
         r.grant(alice, 11e18, T0);
@@ -624,7 +624,7 @@ contract TeamReserveTest is TeamReserveBase {
         assertEq(r.unallocated(), 0);
         vm.prank(safe);
         vm.expectRevert(abi.encodeWithSelector(TeamReserve.NotEnoughUnallocated.selector, 1, 0));
-        r.queueWithdraw(royCold, 1);
+        r.queueWithdraw(ownerCold, 1);
         // Cancelling frees it again.
         vm.prank(safe);
         r.cancelWithdraw(0);
@@ -632,18 +632,18 @@ contract TeamReserveTest is TeamReserveBase {
     }
 
     function test_several_pending_withdrawals() public {
-        queueAs(royCold, 1e18);
+        queueAs(ownerCold, 1e18);
         vm.warp(T0 + 1 days);
         queueAs(bob, 2e18);
         vm.warp(T0 + 2 days);
-        queueAs(royCold, 3e18);
+        queueAs(ownerCold, 3e18);
         vm.prank(safe);
         r.cancelWithdraw(1);
         (uint256[] memory ids, address[] memory tos, uint256[] memory amounts, uint256[] memory ready) = r.pendingWithdrawals();
         assertEq(ids.length, 2);
         assertEq(ids[0], 0);
         assertEq(ids[1], 2);
-        assertEq(tos[1], royCold);
+        assertEq(tos[1], ownerCold);
         assertEq(amounts[1], 3e18);
         assertEq(ready[0], T0 + 30 days);
         assertEq(ready[1], T0 + 32 days);
@@ -691,7 +691,7 @@ contract TeamReserveTest is TeamReserveBase {
 
     // ------------------------------------------------------------------ the whole story
 
-    /// Roy's plan end to end: fund, two hires, one leaves after 18 months, a withdrawal waits 30 days, everyone is
+    /// The owner's plan end to end: fund, two hires, one leaves after 18 months, a withdrawal waits 30 days, everyone is
     /// paid exactly, and only the beneficiaries and the chosen withdrawal address ever received.
     function test_story() public {
         uint256 a = grantAs(alice, 2_400_000e18, T0 + 14 days); // starts in two weeks
@@ -703,7 +703,7 @@ contract TeamReserveTest is TeamReserveBase {
         vm.prank(safe);
         uint256 back = r.revoke(a);
         assertEq(back, 2_400_000e18 - (2_400_000e18 * 18) / 48);
-        uint256 id = queueAs(royCold, 1_000_000e18);
+        uint256 id = queueAs(ownerCold, 1_000_000e18);
         vm.warp(vm.getBlockTimestamp() + 30 days);
         r.executeWithdraw(id);
         vm.warp(T0 + 10 * YEAR);
@@ -711,7 +711,7 @@ contract TeamReserveTest is TeamReserveBase {
         claimAs(bob, b);
         assertEq(coin.balanceOf(alice), (2_400_000e18 * 18) / 48);
         assertEq(coin.balanceOf(bob), 1_200_000e18);
-        assertEq(coin.balanceOf(royCold), 1_000_000e18);
+        assertEq(coin.balanceOf(ownerCold), 1_000_000e18);
         assertEq(r.totalGranted(), 0);
         assertEq(r.totalQueued(), 0);
         assertEq(held(), FUND - coin.balanceOf(alice) - 1_200_000e18 - 1_000_000e18);
@@ -772,20 +772,20 @@ contract TeamReserveTest is TeamReserveBase {
         amount = bound(amount, 1, FUND);
         dt = bound(dt, 0, 90 days);
         vm.assume(caller != address(0));
-        uint256 id = queueAs(royCold, amount);
+        uint256 id = queueAs(ownerCold, amount);
         vm.warp(T0 + dt);
         vm.prank(caller);
         if (dt < 30 days) {
             vm.expectRevert(abi.encodeWithSelector(TeamReserve.NotReady.selector, T0 + 30 days));
             r.executeWithdraw(id);
-            assertEq(coin.balanceOf(royCold), 0);
+            assertEq(coin.balanceOf(ownerCold), 0);
         } else if (dt >= 44 days) {
             vm.expectRevert(abi.encodeWithSelector(TeamReserve.Expired.selector, T0 + 44 days));
             r.executeWithdraw(id);
-            assertEq(coin.balanceOf(royCold), 0);
+            assertEq(coin.balanceOf(ownerCold), 0);
         } else {
             r.executeWithdraw(id);
-            assertEq(coin.balanceOf(royCold), amount);
+            assertEq(coin.balanceOf(ownerCold), amount);
         }
     }
 
@@ -807,13 +807,13 @@ contract TeamReserveTest is TeamReserveBase {
         vm.prank(safe);
         if (q == 0) {
             vm.expectRevert(TeamReserve.ZeroAmount.selector);
-            r.queueWithdraw(royCold, q);
+            r.queueWithdraw(ownerCold, q);
         } else if (q > FUND - g1) {
             vm.expectRevert(abi.encodeWithSelector(TeamReserve.NotEnoughUnallocated.selector, q, FUND - g1));
-            r.queueWithdraw(royCold, q);
+            r.queueWithdraw(ownerCold, q);
             q = 0;
         } else {
-            r.queueWithdraw(royCold, q);
+            r.queueWithdraw(ownerCold, q);
         }
         g2 = bound(g2, 1, FUND);
         uint256 free = FUND - g1 - q;
@@ -831,7 +831,7 @@ contract TeamReserveTest is TeamReserveBase {
     function testFuzz_non_owner_has_no_owner_powers(address caller) public {
         vm.assume(caller != safe);
         grantAs(alice, 1e18, T0);
-        queueAs(royCold, 1e18);
+        queueAs(ownerCold, 1e18);
         OtherCoin other = new OtherCoin();
         vm.startPrank(caller);
         vm.expectRevert(notOwner(caller));
@@ -870,7 +870,7 @@ contract ReserveHandler is Test {
     uint256 public vestedChanges; // a revoke changed what had vested or what could be claimed
     uint256 public vestedDrops; // a grant's vested amount went down
     uint256 public missedClaims; // a claim of something claimable failed
-    uint256 public missedRevokes; // the owner could not revoke a live grant
+    uint256 public missedRevokes; // The owner could not revoke a live grant
     uint256 public missedExecutions; // a ready withdrawal could not be executed
     mapping(uint256 => uint256) public lastVested;
     mapping(address => uint256) public paidToPerson;
@@ -895,7 +895,7 @@ contract ReserveHandler is Test {
             isSink[s] = true;
         }
         strangers.push(makeAddr("stranger"));
-        strangers.push(safe); // the owner, as a caller of what only beneficiaries may do
+        strangers.push(safe); // The owner, as a caller of what only beneficiaries may do
         inflow = coin.balanceOf(address(r));
     }
 
@@ -1166,7 +1166,7 @@ contract TeamReserveInvariantTest is StdInvariant, TeamReserveBase {
             if (handler.isPerson(a)) assertEq(coin.paidFromWatched(a), handler.paidToPerson(a));
             else assertEq(coin.paidFromWatched(a), handler.paidToSink(a));
         }
-        assertEq(coin.balanceOf(safe), 0, "the owner never received $BORRO it did not queue for itself");
+        assertEq(coin.balanceOf(safe), 0, "The owner never received $BORRO it did not queue for itself");
         assertEq(coin.paidOutTotal(), handler.claimedOut() + handler.executedOut());
     }
 

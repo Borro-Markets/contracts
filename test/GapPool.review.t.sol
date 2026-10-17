@@ -264,7 +264,7 @@ contract GapPoolReviewTest is Test {
         assertEq(p.totalReserved(), 0);
     }
 
-    // ------------------------------------------------------------------ 4. the owner cannot reach capital
+    // ------------------------------------------------------------------ 4. The owner cannot reach capital
 
     /// The owner tries to list a feed it controls, to name itself quoter, post the floor premium and settle against
     /// its own rounds. The feeds are fixed at deploy: it cannot add one. On the real feed it is bound like any buyer,

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Deploys BorroHook for real (Roy runs this himself): the hook, every desk's USDG/stock pool, and the handoff of
+# Deploys BorroHook for real (the owner runs this): the hook, every desk's USDG/stock pool, and the handoff of
 # ownership to the Hoard Safe. Reads the RPC and the deployer key from their files without printing either.
 #
 #   bash ~/borro/contracts/script/deploy-borro-hook.sh             dry run (sends nothing), writes script/out/borro-hook.dryrun.json

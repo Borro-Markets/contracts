@@ -62,7 +62,7 @@ contract BorrowEthDeployForkTest is Test {
         assertEq(v.performanceFee(), 0.1e18);
         assertEq(v.performanceFeeRecipient(), SAFE);
         assertEq(o.router.pendingOwner(), SAFE, "the Safe accepts the router");
-        assertEq(IERC20(WETH).balanceOf(o.vault), 0, "no dead deposit without Roy's yes");
+        assertEq(IERC20(WETH).balanceOf(o.vault), 0, "no dead deposit without the owner's yes");
         assertEq(v.absoluteCap(keccak256(abi.encode("this", o.adapter))), 10 ether);
 
         // NVDA's market, from the oracle the script made for it.

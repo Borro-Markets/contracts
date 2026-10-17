@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Deploys the team reserve for real (Roy runs this himself, in his own Terminal): one TeamReserve for $BORRO, owned by
+# Deploys the team reserve for real (the owner runs this, in his own Terminal): one TeamReserve for $BORRO, owned by
 # the Hoard Safe. docs/OPS.md, "Team reserve".
 #
 #   bash ~/borro/contracts/script/deploy-team-reserve.sh
@@ -9,7 +9,7 @@
 #    script/out/team-reserve.json with the receipt's chain block ("block"; the script itself can only see the parent
 #    chain's block number, kept as "parentChainBlock").
 #
-# Nothing is funded here. Afterwards Roy checks the address on the explorer and sends the $BORRO to it himself; grants
+# Nothing is funded here. Afterwards the owner checks the address on the explorer and sends the $BORRO to it himself; grants
 # and withdrawals go through the Safe (keeper/tools/team-grant.mjs writes each one as a Safe batch).
 #
 # The RPC URL and the deployer key are read from their files and handed to forge through the environment: neither is
@@ -21,7 +21,7 @@ export PATH="$HOME/.foundry/bin:$PATH"
 DEPLOYER=0x82c33e1c6Ef8d4704d0AD064585D1FB4f83681E6
 EXPLORER=https://robinhoodchain.blockscout.com
 BORRO=0x89B76DCDDa801f2e456765742C64950eB2A0c93C
-# BORRO_RPC_URL already set: a test chain. Otherwise Roy's endpoint.
+# BORRO_RPC_URL already set: a test chain. Otherwise the owner's endpoint.
 if [ -z "${BORRO_RPC_URL:-}" ]; then
   BORRO_RPC_URL="$(cat "$HOME/.config/hoard/rpc_url")"
 fi

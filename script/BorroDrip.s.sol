@@ -14,26 +14,26 @@ import {BorroLock} from "../src/BorroLock.sol";
 ///   forge script script/BorroDrip.s.sol --rpc-url robinhood --sender <deployer>            (dry run)
 ///   DEPLOYER_PRIVATE_KEY=... forge script ... --broadcast --slow                           (for real)
 ///
-/// Roy runs contracts/script/deploy-borro-drip.sh, which does both and asks in between.
+/// The owner runs contracts/script/deploy-borro-drip.sh, which does both and asks in between.
 ///
 /// The distributor pays $BORRO by cumulative Merkle claims. Owner DRIP_DIST_OWNER (default the Hoard Safe: the owner
 /// names the updater and the guardian, so a single hot key there could redirect every promised, unclaimed token),
 /// updater DRIP_UPDATER (default the keeper), guardian DRIP_GUARDIAN (default the guardian wallet). Its growth limit is
 /// set now, before
-/// the drip's total is known (the total is whatever the drip holds when Roy calls start()): GROWTH_X100/100 (default 2)
+/// the drip's total is known (the total is whatever the drip holds when the owner calls start()): GROWTH_X100/100 (default 2)
 /// times the first period's rate for EXPECTED_TOTAL (whole $BORRO, decimals allowed, default 50,000,000), so the
 /// keeper can promise everything the drip lets out for any total up to GROWTH_X100/100 times the expected one, and a
 /// stolen updater key can promise little more before the guardian steps in. The Safe can change it later
 /// (setMaxIncreasePerSecond).
 ///
-/// The drip: owner DRIP_OWNER (default Roy's launch wallet), the only one who can start and stop it. Any other owner is
+/// The drip: owner DRIP_OWNER (default the launch wallet), the only one who can start and stop it. Any other owner is
 /// refused unless CONFIRM_OWNER names the same address. BorroLock has no owner; $BORRO sent to it outside lock() can
 /// be skimmed by anyone to DRIP_STRAYS (default the Hoard Safe), fixed at deploy.
 ///
 /// The role settings all start with DRIP_, and the old generic names (OWNER, DIST_OWNER, UPDATER, GUARDIAN) are
 /// refused if set: a variable left in a shell for something else must never quietly change who can stop the drip.
 ///
-/// After the deploy (Roy's own steps): send the $BORRO to the drip with a plain transfer, then call start() from the
+/// After the deploy (the owner's own steps): send the $BORRO to the drip with a plain transfer, then call start() from the
 /// owner wallet; start() fixes the total to what the drip holds at that moment and starts the schedule then.
 ///
 /// Writes script/out/borro-drip.json (or DRIP_OUT, inside script/out). Its "block" is block.number, which on Robinhood
@@ -43,7 +43,7 @@ contract BorroDripDeploy is Script {
     address constant HOARD_SAFE = 0x8A22d6e75e9427b9D57e42a7984200029e7E173C;
     address constant KEEPER = 0x3a17bfFF7c6FB05f8c49D3d7181849E531026896;
     address constant GUARDIAN = 0x81E1b17D1f036303C6147c90b259852E80b767Bc;
-    address constant ROY = 0x912CFC9C5D8dC393F5c9949A0912b790529f549E; // Roy's launch wallet
+    address constant LAUNCH_WALLET = 0x912CFC9C5D8dC393F5c9949A0912b790529f549E; // the launch wallet
     uint256 constant PERIOD = 26 weeks;
 
     struct Plan {
@@ -81,7 +81,7 @@ contract BorroDripDeploy is Script {
             !vm.envExists("OWNER") && !vm.envExists("DIST_OWNER") && !vm.envExists("UPDATER") && !vm.envExists("GUARDIAN"),
             "OWNER, DIST_OWNER, UPDATER or GUARDIAN is set in this shell: the drip's settings are DRIP_OWNER, DRIP_DIST_OWNER, DRIP_UPDATER, DRIP_GUARDIAN; unset the old name"
         );
-        p.owner = vm.envOr("DRIP_OWNER", ROY);
+        p.owner = vm.envOr("DRIP_OWNER", LAUNCH_WALLET);
         p.distOwner = vm.envOr("DRIP_DIST_OWNER", HOARD_SAFE);
         p.updater = vm.envOr("DRIP_UPDATER", KEEPER);
         p.guardian = vm.envOr("DRIP_GUARDIAN", GUARDIAN);
@@ -89,12 +89,12 @@ contract BorroDripDeploy is Script {
         require(p.owner != address(0) && p.distOwner != address(0), "DRIP_OWNER and DRIP_DIST_OWNER must not be zero");
         require(p.updater != address(0) && p.guardian != address(0), "DRIP_UPDATER and DRIP_GUARDIAN must not be zero");
         require(p.strays != address(0), "DRIP_STRAYS must not be zero");
-        // Whoever owns the drip can take back everything not yet let out: anyone but Roy's launch wallet must be named
+        // Whoever owns the drip can take back everything not yet let out: anyone but the launch wallet must be named
         // twice.
-        if (p.owner != ROY) {
+        if (p.owner != LAUNCH_WALLET) {
             require(
                 vm.envOr("CONFIRM_OWNER", address(0)) == p.owner,
-                "DRIP_OWNER is not Roy's launch wallet: set CONFIRM_OWNER to the same address to deploy with it"
+                "DRIP_OWNER is not the launch wallet: set CONFIRM_OWNER to the same address to deploy with it"
             );
         }
         // The keeper and the guardian hold hot keys: neither may own anything that holds the drip's tokens.
@@ -179,7 +179,7 @@ contract BorroDripDeploy is Script {
 
     function summary(Plan memory p, BorroDistributor dist, BorroDrip drip, BorroLock lock) internal view {
         console2.log("==================================================================================");
-        console2.log("DRIP OWNER  ", p.owner, p.owner == ROY ? "(Roy's launch wallet)" : "(NOT Roy's launch wallet: confirmed by CONFIRM_OWNER)");
+        console2.log("DRIP OWNER  ", p.owner, p.owner == LAUNCH_WALLET ? "(the launch wallet)" : "(NOT the launch wallet: confirmed by CONFIRM_OWNER)");
         console2.log("  the only address that can start the drip, and stop it to take back everything not yet let out");
         console2.log("==================================================================================");
         console2.log("BorroDistributor (the drip's own)  ", address(dist));

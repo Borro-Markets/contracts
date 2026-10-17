@@ -36,7 +36,7 @@ interface ILeverVault {
 }
 
 /// @title LeverRouter
-/// @notice A leveraged long on a stock in one transaction, and its close in one transaction. Roy, 2026-10-06:
+/// @notice A leveraged long on a stock in one transaction, and its close in one transaction. 2026-10-06:
 ///         "one clicl leveraged longs".
 ///         Open: the caller's USDG margin plus a free Morpho flash loan of the debt buy the stock through the route
 ///         Borro's short desk uses; the stock is lent to its Borro vault (so it earns rent from shorters) and the vault

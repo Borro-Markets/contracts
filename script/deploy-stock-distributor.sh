@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Deploys StockDistributor for real (Roy runs this himself, in his own Terminal): the contract that pays a basket of
+# Deploys StockDistributor for real (the owner runs this, in his own Terminal): the contract that pays a basket of
 # stock tokens to $BORRO holders (docs/OPS.md, "Stocks for holders"). Owned by the Hoard Safe from the start, the
 # keeper as updater, the guardian wallet as guardian, the basket NVDA TSLA SPY PLTR COIN from Borro's own desks.
 #
@@ -17,7 +17,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 export PATH="$HOME/.foundry/bin:$PATH"
 DEPLOYER=0x82c33e1c6Ef8d4704d0AD064585D1FB4f83681E6
-# BORRO_RPC_URL already set: a test chain (keeper/test/stockpay.fork.mjs). Otherwise Roy's endpoint.
+# BORRO_RPC_URL already set: a test chain (keeper/test/stockpay.fork.mjs). Otherwise the owner's endpoint.
 export BORRO_RPC_URL="${BORRO_RPC_URL:-$(cat "$HOME/.config/hoard/rpc_url")}"
 KEY_FILE="${DEPLOYER_KEY_FILE:-$HOME/.config/borro/deployer_key}"
 SENDER="${DEPLOYER_ADDRESS:-$DEPLOYER}"

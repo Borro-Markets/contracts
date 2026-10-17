@@ -40,7 +40,7 @@ interface IFeed {
 ///   forge script script/StockDistributor.s.sol --rpc-url robinhood --sender <deployer>            (dry run)
 ///   DEPLOYER_PRIVATE_KEY=... forge script ... --broadcast --slow                                    (for real)
 ///
-/// Roy runs contracts/script/deploy-stock-distributor.sh, which does both and asks in between.
+/// The owner runs contracts/script/deploy-stock-distributor.sh, which does both and asks in between.
 ///
 /// The basket (BASKET, default NVDA,TSLA,SPY,PLTR,COIN) is read from Borro's own desks: each symbol's market id from
 /// script/out/desks.json (DESKS), then its token and Chainlink feed from BorroShort.deskOf, so the distributor lists

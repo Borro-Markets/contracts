@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Deploys BearFactory to Robinhood Chain for real (Roy runs this himself). Reads the RPC and the deployer key from
+# Deploys BearFactory to Robinhood Chain for real (the owner runs this). Reads the RPC and the deployer key from
 # their files without printing either; writes script/out/bear-factory.json. Dry run it first by leaving out --broadcast.
 set -euo pipefail
 cd "$(dirname "$0")/.."

@@ -6,7 +6,7 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 
 /// @title BorroLock
 /// @notice Lock your own $BORRO until a date you choose (1, 3, 6 or 12 months out) for a boost on Borro's depositor
-///         drip. Roy, 2026-10-07: "add the borro lock boost to the drip".
+///         drip. 2026-10-07: "add the borro lock boost to the drip".
 /// @dev One lock per address: an amount and an unlock time. lock() adds tokens and moves the unlock time to the later
 ///      of the current one and now plus the chosen duration; extend() moves it later; nothing ever moves it earlier.
 ///      withdraw() pays the whole lock back to the locker at or after the unlock time, and then always works.

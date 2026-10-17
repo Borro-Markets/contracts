@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Deploys OptionsDesk (the Options desk, docs/OPTIONS.md) for real (Roy runs this himself). Dry run first, then asks
+# Deploys OptionsDesk (the Options desk, docs/OPTIONS.md) for real (the owner runs this). Dry run first, then asks
 # before sending. Reads the RPC and the deployer key from their files without printing either; writes
 # script/out/options-desk.json with the deploy's chain block from the receipt (block.number inside a forge script on
 # this chain is the parent chain's block). The script does the setup from the deployer and hands the desk to the

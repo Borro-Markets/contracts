@@ -11,7 +11,7 @@ import {Ownable2Step, Ownable} from "@openzeppelin/contracts/access/Ownable2Step
 ///         The prize pot of each week goes to the best short closed that week.
 /// @dev Everything BorroRewards does, unchanged, so BorroShort.setRewards is the only switch. What it adds: the
 ///      owner can take money back, because a pot the team fills to start the market must not be stuck there if
-///      nobody comes (Roy, 2026-10-05: the first version had no way back, and money put in to seed it is locked).
+///      nobody comes (2026-10-05: the first version had no way back, and money put in to seed it is locked).
 ///      Taking money back waits RECLAIM_DELAY in public, so everyone sees it coming, and it never takes a prize
 ///      someone is leading for: while a short leads the current week, that week's pot is not reclaimable.
 ///      Only the shorting contract can report a close, and that address is fixed for good. The owner sets

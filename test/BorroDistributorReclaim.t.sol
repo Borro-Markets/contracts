@@ -15,7 +15,7 @@ contract Coin is ERC20 {
     }
 }
 
-/// The owner's reclaim (Roy, 2026-10-06): it takes back what no root promises, at once, and never a token an
+/// The owner's reclaim (2026-10-06): it takes back what no root promises, at once, and never a token an
 /// account is owed under the root in force or a waiting one.
 contract BorroDistributorReclaimTest is Test {
     Coin coin;
@@ -24,7 +24,7 @@ contract BorroDistributorReclaimTest is Test {
     address keeper = makeAddr("keeper");
     address guardian = makeAddr("guardian");
     address alice = makeAddr("alice");
-    address roy = makeAddr("roy");
+    address ownerWallet = makeAddr("ownerWallet");
 
     function setUp() public {
         vm.warp(1_800_000_000);
@@ -46,8 +46,8 @@ contract BorroDistributorReclaimTest is Test {
     function test_nothing_promised_all_comes_back_at_once() public {
         assertEq(dist.reclaimable(), 1_000e18);
         vm.prank(safe);
-        dist.reclaim(roy, 1_000e18);
-        assertEq(coin.balanceOf(roy), 1_000e18);
+        dist.reclaim(ownerWallet, 1_000e18);
+        assertEq(coin.balanceOf(ownerWallet), 1_000e18);
         assertEq(coin.balanceOf(address(dist)), 0);
     }
 
@@ -56,9 +56,9 @@ contract BorroDistributorReclaimTest is Test {
         assertEq(dist.reclaimable(), 700e18);
         vm.prank(safe);
         vm.expectRevert(abi.encodeWithSelector(BorroDistributor.OverReclaimable.selector, 701e18, 700e18));
-        dist.reclaim(roy, 701e18);
+        dist.reclaim(ownerWallet, 701e18);
         vm.prank(safe);
-        dist.reclaim(roy, 700e18);
+        dist.reclaim(ownerWallet, 700e18);
         // Alice is still paid in full once the root takes effect.
         vm.warp(block.timestamp + dist.ROOT_DELAY());
         dist.claim(alice, 300e18, new bytes32[](0));
@@ -89,7 +89,7 @@ contract BorroDistributorReclaimTest is Test {
 
     function test_new_roots_still_bounded_by_what_is_left() public {
         vm.prank(safe);
-        dist.reclaim(roy, 900e18);
+        dist.reclaim(ownerWallet, 900e18);
         vm.prank(keeper);
         vm.expectRevert(abi.encodeWithSelector(BorroDistributor.TotalNotHeld.selector, 101e18, 100e18));
         dist.proposeRoot(leaf(alice, 101e18), 101e18);
@@ -103,7 +103,7 @@ contract BorroDistributorReclaimTest is Test {
         assertEq(free, 1_000e18 - p);
         uint256 t = bound(take, 0, free);
         vm.prank(safe);
-        dist.reclaim(roy, t);
+        dist.reclaim(ownerWallet, t);
         assertGe(coin.balanceOf(address(dist)), p);
         if (p > 0) {
             vm.warp(block.timestamp + dist.ROOT_DELAY());
@@ -114,6 +114,6 @@ contract BorroDistributorReclaimTest is Test {
         uint256 over = dist.reclaimable() + more;
         vm.prank(safe);
         vm.expectRevert();
-        dist.reclaim(roy, over);
+        dist.reclaim(ownerWallet, over);
     }
 }

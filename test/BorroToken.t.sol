@@ -424,7 +424,7 @@ contract BorroTokenTest is Test {
         _wait(3 hours);
         vm.prank(guardian);
         dist.revokeRoot();
-        vm.prank(owner); // the owner can lift a pause too
+        vm.prank(owner); // The owner can lift a pause too
         dist.setPaused(false);
         assertEq(dist.root(), root, "the good root is still the one in force");
         assertEq(dist.total(), 1_000e18);

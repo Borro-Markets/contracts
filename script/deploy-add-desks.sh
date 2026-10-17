@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Adds the stock desks in script/stocks-add.json to the live Borro (docs/ADD-DESKS.md). Roy runs this himself.
+# Adds the stock desks in script/stocks-add.json to the live Borro (docs/ADD-DESKS.md). The owner runs this.
 #
 #   script/deploy-add-desks.sh           dry run against the chain (sends nothing), then asks before sending for real
 #   script/deploy-add-desks.sh --fork    rehearsal on a local anvil fork of the chain: funds the deployer with the

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Deploys coin shorts for real (Roy runs this himself): CoinListing, CoinShort (and its cUSDG) and CoinLiquidator,
+# Deploys coin shorts for real (the owner runs this): CoinListing, CoinShort (and its cUSDG) and CoinLiquidator,
 # owned by the Hoard Safe from the start. A dry run first, then it asks before sending. Reads the RPC and the deployer
 # key from their files without printing either. Writes script/out/coin-shorts.json with the chain's own block, taken
 # from the receipts.

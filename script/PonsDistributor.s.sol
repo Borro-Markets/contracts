@@ -27,7 +27,7 @@ interface IPonsFactory {
     function getLaunchedToken(address token) external view returns (LaunchedToken memory);
 }
 
-/// Deploys the BorroDistributor that pays out the $BORRO coin launched on Pons (Roy, 2026-10-05: rewards are
+/// Deploys the BorroDistributor that pays out the $BORRO coin launched on Pons (2026-10-05: rewards are
 /// that coin, bought with its creator fees and paid daily). It is the same contract as the old emitter's
 /// distributor, made for another token: the keeper's fund job sends it the $BORRO it buys, and the rewards job
 /// proposes a root of running totals once a day.
