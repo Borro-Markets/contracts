@@ -334,6 +334,7 @@ contract BorroCallsInvariantTest is Test {
     /// At the end of every run everyone takes everything out, and it all comes out: nothing is stuck but dust.
     function afterInvariant() external {
         // One line per run, so a run's coverage can be read back (script/out is the folder tests may write).
+        vm.createDir("script/out", true); // ignored by git (`out/`), so missing in a fresh clone
         vm.writeLine(
             "script/out/calls-invariant-tally.txt",
             string.concat("rounds ", vm.toString(h.rounds()), " itm ", vm.toString(h.itm()), " void ", vm.toString(h.voided()))

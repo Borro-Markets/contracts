@@ -323,6 +323,7 @@ contract CoinShortsInvariantTest is McapKnob {
     /// What the runs did, so a pass means something: opens, closes and liquidations that went through.
     function afterInvariant() public {
         if (!forked) return;
+        vm.createDir("script/out", true); // ignored by git (`out/`), so missing in a fresh clone
         vm.writeLine(
             "script/out/coin-shorts-invariant-tally.txt",
             string.concat("opens ", vm.toString(h.opens()), " closes ", vm.toString(h.closes()), " liquidations ", vm.toString(h.liquidations()))

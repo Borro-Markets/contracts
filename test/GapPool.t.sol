@@ -259,10 +259,13 @@ contract GapPoolTest is Test {
         new GapPool(usdg, IHeldVault(address(vault)), owner, _one(address(0)));
         vm.expectRevert(GapPool.BadValue.selector);
         new GapPool(usdg, IHeldVault(address(vault)), owner, _feeds(address(feed), address(feed))); // twice
+        // Deployed before expectRevert, which applies to the very next call (a contract creation counts).
+        address noDecimals = address(new NoDecimalsFeed());
+        IHeldVault otherVault = IHeldVault(address(new MockVault(new Tok("OTHER", 6))));
         vm.expectRevert(GapPool.BadFeed.selector);
-        new GapPool(usdg, IHeldVault(address(vault)), owner, _one(address(new NoDecimalsFeed())));
+        new GapPool(usdg, IHeldVault(address(vault)), owner, _one(noDecimals));
         vm.expectRevert(GapPool.BadVault.selector);
-        new GapPool(usdg, IHeldVault(address(new MockVault(new Tok("OTHER", 6)))), owner, _one(address(feed)));
+        new GapPool(usdg, otherVault, owner, _one(address(feed)));
     }
 
     // ------------------------------------------------------------------ owner
