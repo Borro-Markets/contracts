@@ -427,6 +427,7 @@ contract CuratedInvariantTest is Test {
             ", repays ", vm.toString(h.repays()), ", liquidations ", vm.toString(h.liquidations())
         );
         console2.log(line);
+        vm.createDir(string.concat(vm.projectRoot(), "/script/out"), true); // ignored by git (`out/`), so missing in a fresh clone
         vm.writeLine(string.concat(vm.projectRoot(), "/script/out/curated-invariant-tally.txt"), line);
     }
 }

@@ -287,6 +287,7 @@ contract CoinLoansInvariantTest is CoinLoansBase {
 
     function afterInvariant() public {
         if (!forked) return;
+        vm.createDir("script/out", true); // ignored by git (`out/`), so missing in a fresh clone
         vm.writeLine(
             "script/out/coin-loans-invariant-tally.txt",
             string.concat("borrows ", vm.toString(h.borrows()), " repays ", vm.toString(h.repays()), " liquidations ", vm.toString(h.liquidations()))

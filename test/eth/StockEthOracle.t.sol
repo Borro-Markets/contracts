@@ -401,8 +401,9 @@ contract StockEthOracleTest is Test {
     }
 
     /// The armed flag never outlives its transaction: armed and left armed in one transaction, the next is strict.
-    /// This repo's Foundry config runs every top-level call of a test as its own transaction (isolate = true, see
-    /// `forge config`), which is what makes this a real check.
+    /// The inline config below runs every top-level call of this test as its own transaction (isolate = true),
+    /// which is what makes this a real check.
+    /// forge-config: default.isolate = true
     function test_armEndsWithTheTransaction() public {
         vm.warp(SAT_NOON);
         ethFeed.set(2700e8, SAT_NOON);
